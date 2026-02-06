@@ -8,6 +8,6 @@
     <Project Path="Infrastructure/Persistence/Persistence.csproj" />
     <Project Path="Infrastructure/Presentation/Presentation.csproj" />
   </Folder>
-  <Project Path="Hospital_Grad/Hospital_Grad.csproj" />
+  <Project Path="Hospital_Grad/Hospital_Grad,API.csproj" />
   <Project Path="Shared/Shared.csproj" />
 </Solution>
