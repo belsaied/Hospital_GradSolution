@@ -10,5 +10,6 @@ namespace Domain.Models.Enums
         Moderate,        
         Severe,          
         LifeThreatening  
+
     }
 }
