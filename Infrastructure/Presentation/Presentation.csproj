@@ -8,6 +8,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\ServiceAbstraction\Services.Abstraction.csproj" />
+    <ProjectReference Include="..\Persistence\Persistence.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />		
+	</ItemGroup>
+	
 </Project>
