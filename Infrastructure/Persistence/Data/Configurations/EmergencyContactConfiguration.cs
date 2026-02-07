@@ -33,6 +33,7 @@ namespace Persistence.Data.Configurations
             builder.Property(e => e.Notes)
                    .HasMaxLength(500);
 
+
             builder.HasOne(x => x.Patient)
                    .WithMany(P => P.EmergencyContacts)
                    .HasForeignKey(x => x.PatientId)
