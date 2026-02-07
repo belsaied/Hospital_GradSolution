@@ -37,6 +37,7 @@ namespace Persistence.Data.Configurations
                    .WithMany(P => P.EmergencyContacts)
                    .HasForeignKey(x => x.PatientId)
                    .OnDelete(DeleteBehavior.Cascade);
+
                 
         }
     }
