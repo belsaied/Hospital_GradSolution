@@ -38,6 +38,7 @@ namespace Persistence.Data.Configurations
                    .HasForeignKey(x => x.PatientId)
                    .OnDelete(DeleteBehavior.Cascade);
 
+
                 
         }
     }
