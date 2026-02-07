@@ -1,0 +1,29 @@
+﻿using Domain.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Domain.Models
+{
+    public class Patient :BaseEntity<int>
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public DateTime DateOfBirth { get; set; }
+        public Gender Gender { get; set; } 
+        public BloodType? BloodType { get; set; }
+        public string NationalId { get; set; } = string.Empty;
+        public string MedicalRecordNumber { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public Address Address { get; set; } = null!;
+        public PatientStatus Status { get; set; } = PatientStatus.Active;
+        public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+
+        #region Navigation Property
+        public ICollection<PatientAllergy> PatientAllergies { get; set; } = new HashSet<PatientAllergy>();
+        public ICollection<PatientMedicalHistory> PatientMedicalHistories { get; set; } = new HashSet<PatientMedicalHistory>();
+        public ICollection<EmergencyContact> EmergencyContacts { get; set; } = new HashSet<EmergencyContact>();
+        #endregion
+    }
+}

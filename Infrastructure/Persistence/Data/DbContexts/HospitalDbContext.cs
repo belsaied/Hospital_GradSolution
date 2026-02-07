@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Data.DbContexts
 {
@@ -12,5 +13,9 @@ namespace Persistence.Data.DbContexts
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(HospitalDbContext).Assembly);
         }
+        public DbSet<Patient> Patients { get; set; }
+        public DbSet<PatientMedicalHistory> PatientMedicalHistories { get; set; }
+        public DbSet<PatientAllergy> PatientAllergies { get; set; }
+        public DbSet<EmergencyContact> EmergencyContacts { get; set; }
     }
 }
