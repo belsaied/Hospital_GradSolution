@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+﻿using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Data.DbContexts

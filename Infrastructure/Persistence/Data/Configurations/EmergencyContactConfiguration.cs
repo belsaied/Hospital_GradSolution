@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+﻿using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

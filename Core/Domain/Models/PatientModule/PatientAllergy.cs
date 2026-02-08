@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Domain.Models
+namespace Domain.Models.PatientModule
 {
     public class PatientAllergy :BaseEntity<int>
     {

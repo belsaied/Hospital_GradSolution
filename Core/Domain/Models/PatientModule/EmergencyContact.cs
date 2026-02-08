@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Domain.Models
+namespace Domain.Models.PatientModule
 {
     public class EmergencyContact :BaseEntity<int>
     {
