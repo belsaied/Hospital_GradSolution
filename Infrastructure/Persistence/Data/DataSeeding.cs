@@ -3,76 +3,85 @@ using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace Persistence.Data
+
+public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
 {
-    public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
+    public async Task SeedDataAsync()
     {
-        public async Task SeedDataAsync()
+        try
         {
-            try
+            var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync();
+            if (pendingMigrations.Any())
+                await _dbContext.Database.MigrateAsync();
+
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "..", "Infrastructure", "Persistence", "Data", "DataSeed");
+
+            var jsonOptions = new JsonSerializerOptions
             {
-                // Check for pending migrations and apply them
-                var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync();
-                if (pendingMigrations.Any())
-                {
-                    await _dbContext.Database.MigrateAsync();
-                }
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
 
-                // 1. Seed Patients (no dependencies)
-                if (!_dbContext.Patients.Any())
-                {
-                    var patientsData = File.OpenRead("..\\Infrastructure\\Persistence\\Data\\DataSeed\\patients.json");
-                    var patients = await JsonSerializer.DeserializeAsync<List<Patient>>(patientsData);
-                    if (patients is not null && patients.Any())
-                    {
-                        await _dbContext.Patients.AddRangeAsync(patients);
-                        await _dbContext.SaveChangesAsync(); // Save to generate IDs
-                    }
-                }
-
-                // 2. Seed Patient Allergies (depends on Patient)
-                if (!_dbContext.PatientAllergies.Any())
-                {
-                    var allergiesData = File.OpenRead("..\\Infrastructure\\Persistence\\Data\\DataSeed\\allergies.json");
-                    var allergies = await JsonSerializer.DeserializeAsync<List<PatientAllergy>>(allergiesData);
-                    if (allergies is not null && allergies.Any())
-                    {
-                        await _dbContext.PatientAllergies.AddRangeAsync(allergies);
-                    }
-                }
-
-                // 3. Seed Patient Medical Histories (depends on Patient)
-                if (!_dbContext.PatientMedicalHistories.Any())
-                {
-                    var medicalHistoriesData = File.OpenRead("..\\Infrastructure\\Persistence\\Data\\DataSeed\\medical-histories.json");
-                    var medicalHistories = await JsonSerializer.DeserializeAsync<List<PatientMedicalHistory>>(medicalHistoriesData);
-                    if (medicalHistories is not null && medicalHistories.Any())
-                    {
-                        await _dbContext.PatientMedicalHistories.AddRangeAsync(medicalHistories);
-                    }
-                }
-
-                // 4. Seed Emergency Contacts (depends on Patient)
-                if (!_dbContext.EmergencyContacts.Any())
-                {
-                    var emergencyContactsData = File.OpenRead("..\\Infrastructure\\Persistence\\Data\\DataSeed\\emergency-contacts.json");
-                    var emergencyContacts = await JsonSerializer.DeserializeAsync<List<EmergencyContact>>(emergencyContactsData);
-                    if (emergencyContacts is not null && emergencyContacts.Any())
-                    {
-                        await _dbContext.EmergencyContacts.AddRangeAsync(emergencyContacts);
-                    }
-                }
-
-                // Final save for all dependent entities
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (Exception ex)
+            //  Patients
+            if (!await _dbContext.Patients.AnyAsync())
             {
-                // Log the exception (you can inject ILogger here)
-                Console.WriteLine($"Error during data seeding: {ex.Message}");
-                throw;
+                var patientsPath = Path.Combine(basePath, "patients.json");
+                var patients = await LoadJsonAsync<Patient>(patientsPath, jsonOptions);
+
+                if (patients?.Any() == true)
+                {
+                    await _dbContext.Patients.AddRangeAsync(patients);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
+
+            //  Allergies
+            if (!await _dbContext.PatientAllergies.AnyAsync())
+            {
+                var allergiesPath = Path.Combine(basePath, "allergies.json");
+                var allergies = await LoadJsonAsync<PatientAllergy>(allergiesPath, jsonOptions);
+
+                if (allergies?.Any() == true)
+                    await _dbContext.PatientAllergies.AddRangeAsync(allergies);
+            }
+
+            //  Medical Histories
+            if (!await _dbContext.PatientMedicalHistories.AnyAsync())
+            {
+                var historiesPath = Path.Combine(basePath, "medical-histories.json");
+                var histories = await LoadJsonAsync<PatientMedicalHistory>(historiesPath, jsonOptions);
+
+                if (histories?.Any() == true)
+                    await _dbContext.PatientMedicalHistories.AddRangeAsync(histories);
+            }
+
+            //  Emergency Contacts
+            if (!await _dbContext.EmergencyContacts.AnyAsync())
+            {
+                var contactsPath = Path.Combine(basePath, "emergency-contacts.json");
+                var contacts = await LoadJsonAsync<EmergencyContact>(contactsPath, jsonOptions);
+
+                if (contacts?.Any() == true)
+                    await _dbContext.EmergencyContacts.AddRangeAsync(contacts);
+            }
+
+            await _dbContext.SaveChangesAsync();
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Seed Error: {ex.Message}");
+            throw;
+        }
+    }
+
+    private async Task<List<T>?> LoadJsonAsync<T>(string path, JsonSerializerOptions options)
+    {
+        if (!File.Exists(path))
+            return null;
+
+        await using var stream = File.OpenRead(path);
+        return await JsonSerializer.DeserializeAsync<List<T>>(stream, options);
     }
 }

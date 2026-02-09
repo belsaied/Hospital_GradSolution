@@ -1,5 +1,4 @@
-﻿using Domain.Models.Enums;
-using Domain.Models.PatientModule;
+﻿using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Data.DbContexts
@@ -13,9 +12,7 @@ namespace Persistence.Data.DbContexts
         override protected void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(HospitalDbContext).Assembly);
-            // Global query filter
-            modelBuilder.Entity<Patient>()
-                .HasQueryFilter(p => p.Status != PatientStatus.Deceased);
+
         }
         public DbSet<Patient> Patients { get; set; }
         public DbSet<PatientMedicalHistory> PatientMedicalHistories { get; set; }
