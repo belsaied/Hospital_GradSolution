@@ -1,36 +1,29 @@
+using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
+using Persistence.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
+#region Services Configuration
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<HospitalDbContext>(options =>
 {
-       options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-    
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddOpenApi(); 
+#endregion
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
