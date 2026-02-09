@@ -11,7 +11,7 @@ namespace Domain.Contracts
          Task<TEntity?> GetByIdAsync(TKey id);
          Task AddAsync(TEntity entity);
          void Update(TEntity entity);
-         void Delete(TKey id);
+         void Delete(TEntity entity);
 
     }
 }

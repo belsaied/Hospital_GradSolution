@@ -6,9 +6,9 @@ namespace Domain.Models.Enums
 {
     public enum PatientStatus
     {
-        Active,
-        Inactive,
-        Deceased,
-        Transferred
+        Active = 1,
+        Inactive = 2,
+        Deceased = 3,
+        Transferred = 4,
     }
 }

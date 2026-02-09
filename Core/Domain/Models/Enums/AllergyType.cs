@@ -6,8 +6,8 @@ namespace Domain.Models.Enums
 {
     public enum AllergyType
     {
-        Drugs,
-        Food,
-        Environmental
+        Drugs=1,
+        Food=2,
+        Environmental=3
     }
 }

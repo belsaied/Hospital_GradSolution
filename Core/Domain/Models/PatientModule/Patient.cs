@@ -19,6 +19,9 @@ namespace Domain.Models.PatientModule
         public Address Address { get; set; } = null!;
         public PatientStatus Status { get; set; } = PatientStatus.Active;
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+        // Computed property
+        public int Age => DateTime.UtcNow.Year - DateOfBirth.Year -
+            (DateTime.UtcNow.DayOfYear < DateOfBirth.DayOfYear ? 1 : 0);
 
         #region Navigation Property
         public ICollection<PatientAllergy> PatientAllergies { get; set; } = new HashSet<PatientAllergy>();

@@ -73,6 +73,8 @@ namespace Persistence.Data.Configurations
                 address.Property(a => a.PostalCode)
                        .HasMaxLength(20);
             });
+            // Computed column (optional, not mapped)
+            builder.Ignore(p => p.Age);
         }
     }
 }

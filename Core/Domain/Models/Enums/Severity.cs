@@ -6,9 +6,9 @@ namespace Domain.Models.Enums
 {
     public enum Severity
     {
-        Mild,
-        Moderate,
-        Severe,
-        LifeThreatening
+        Mild = 1,
+        Moderate = 2,
+        Severe = 3,
+        LifeThreatening = 4,
     }
 }
