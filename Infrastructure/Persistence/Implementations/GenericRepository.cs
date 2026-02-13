@@ -2,9 +2,6 @@
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Persistence.Implementations
 {
@@ -20,7 +17,9 @@ namespace Persistence.Implementations
         public async Task AddAsync(TEntity entity) =>await _dbContext.Set<TEntity>().AddAsync(entity);
         public void Delete(TEntity entity) => _dbContext.Set<TEntity>().Remove(entity);
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync() =>await _dbContext.Set<TEntity>().ToListAsync();
+        public async Task<IEnumerable<TEntity>> GetAllAsync(bool asNoTracking = false) 
+            => asNoTracking ? await _dbContext.Set<TEntity>().AsNoTracking().ToListAsync()
+            : await _dbContext.Set<TEntity>().ToListAsync();
 
         public async Task<TEntity?> GetByIdAsync(TKey id) => await _dbContext.Set<TEntity>().FindAsync(id);
 
