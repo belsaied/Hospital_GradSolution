@@ -1,4 +1,4 @@
-﻿namespace Shared.Dtos.PatientModule
+﻿namespace Shared.Dtos.PatientModule.PatientDtos
 {
     public record PatientResultDto
     {

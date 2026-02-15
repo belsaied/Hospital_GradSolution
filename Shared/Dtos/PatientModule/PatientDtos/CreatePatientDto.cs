@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
-namespace Shared.Dtos.PatientModule
+namespace Shared.Dtos.PatientModule.PatientDtos
 {
     public record CreatePatientDto
     {

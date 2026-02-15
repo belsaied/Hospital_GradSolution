@@ -1,7 +1,7 @@
 ﻿using Domain.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace Shared.Dtos.PatientModule
+namespace Shared.Dtos.PatientModule.PatientDtos
 {
     public record UpdatePatientDto
     {

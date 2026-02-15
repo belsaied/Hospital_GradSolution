@@ -1,4 +1,4 @@
-﻿using Shared.Dtos.PatientModule;
+﻿using Shared.Dtos.PatientModule.PatientDtos;
 
 namespace Services.Abstraction.Contracts
 {

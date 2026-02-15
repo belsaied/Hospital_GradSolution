@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Models.PatientModule;
-using Shared.Dtos.PatientModule;
+using Shared.Dtos.PatientModule.PatientDtos;
 
 namespace Services.MappingProfiles.PatientModule
 {

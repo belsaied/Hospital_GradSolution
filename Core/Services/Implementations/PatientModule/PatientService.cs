@@ -3,7 +3,7 @@ using Domain.Contracts;
 using Domain.Models.Enums;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
-using Shared.Dtos.PatientModule;
+using Shared.Dtos.PatientModule.PatientDtos;
 
 namespace Services.Implementations.PatientModule
 {
@@ -23,10 +23,10 @@ namespace Services.Implementations.PatientModule
             return true;      // successfully deactivated
         }
 
-        public Task<PatientResultDto> GetPatientByIdAsync(int id)
+        public async Task<PatientResultDto> GetPatientByIdAsync(int id)
         {
             var patientRepository = _unitOfWork.GetRepository<Patient , int>();
-            var patient = patientRepository.GetByIdAsync(id);
+            var patient = await patientRepository.GetByIdAsync(id);
             if (patient is null)
                 return null!;
 
