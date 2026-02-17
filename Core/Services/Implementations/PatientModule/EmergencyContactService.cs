@@ -1,0 +1,115 @@
+﻿using AutoMapper;
+using Domain.Contracts;
+using Domain.Models.PatientModule;
+using Services.Abstraction.Contracts;
+using Shared.Dtos.PatientModule.EmergencyContactsDtos;
+
+namespace Services.Implementations.PatientModule
+{
+    public class EmergencyContactService (IUnitOfWork _unitOfWork , IMapper _mapper) : IEmergencyContactService
+    {
+        public async Task<EmergencyContactResultDto> AddEmergencyContactAsync(int patientId, CreateEmergencyContactDto contactDto)
+        {
+            // STEP 1: Verify patient exists
+            var patientRepository = _unitOfWork.GetRepository<Patient, int>();
+            var patient = await patientRepository.GetByIdAsync(patientId);
+            if (patient is null)
+                return null!;
+
+            // STEP 2: Map DTO to Entity
+            var emergencyContact = _mapper.Map<EmergencyContact>(contactDto);
+            emergencyContact.PatientId = patientId;
+            emergencyContact.CreatedAt = DateTime.UtcNow;
+
+            // STEP 3: Get emergency contact repository and add
+            var contactRepository = _unitOfWork.GetRepository<EmergencyContact, int>();
+            await contactRepository.AddAsync(emergencyContact);
+
+            // STEP 4: Save changes
+            await _unitOfWork.SaveChangesAsync();
+
+            // STEP 5: Return result DTO
+            return _mapper.Map<EmergencyContactResultDto>(emergencyContact);
+        }
+
+        public async Task<IEnumerable<EmergencyContactResultDto>> GetEmergencyContactsAsync(int patientId)
+        {
+            // STEP 1: Verify patient exists
+            var patientRepository = _unitOfWork.GetRepository<Patient, int>();
+            var patient = await patientRepository.GetByIdAsync(patientId);
+            if (patient is null)
+                return Enumerable.Empty<EmergencyContactResultDto>();
+
+            // STEP 2: Get all emergency contacts
+            var contactRepository = _unitOfWork.GetRepository<EmergencyContact, int>();
+            var contacts = await contactRepository.GetAllAsync(asNoTracking: true);
+
+            // STEP 3: Filter by patient ID
+            var patientContacts = contacts.Where(c => c.PatientId == patientId);
+
+            // STEP 4: Map to DTOs
+            return _mapper.Map<IEnumerable<EmergencyContactResultDto>>(patientContacts);
+        }
+
+        public async Task<EmergencyContactResultDto> UpdateEmergencyContactAsync(int patientId, int contactId, UpdateEmergencyContactDto contactDto)
+        {
+            // STEP 1: Get emergency contact repository
+            var contactRepository = _unitOfWork.GetRepository<EmergencyContact, int>();
+            var emergencyContact = await contactRepository.GetByIdAsync(contactId);
+
+            // STEP 2: Verify contact exists and belongs to patient
+            if (emergencyContact is null || emergencyContact.PatientId != patientId)
+                return null!;
+
+            // STEP 3: Update fields if provided
+            if (!string.IsNullOrEmpty(contactDto.Name))
+                emergencyContact.Name = contactDto.Name;
+
+            if (!string.IsNullOrEmpty(contactDto.Relationship))
+                emergencyContact.Relationship = contactDto.Relationship;
+
+            if (!string.IsNullOrEmpty(contactDto.Phone))
+                emergencyContact.Phone = contactDto.Phone;
+
+            if (!string.IsNullOrEmpty(contactDto.Email))
+                emergencyContact.Email = contactDto.Email;
+
+            if (contactDto.IsPrimaryContact.HasValue)
+                emergencyContact.IsPrimaryContact = contactDto.IsPrimaryContact.Value;
+
+            if (!string.IsNullOrEmpty(contactDto.Notes))
+                emergencyContact.Notes = contactDto.Notes;
+
+            // Update timestamp
+            emergencyContact.UpdatedAt = DateTime.UtcNow;
+
+            // STEP 4: Mark as modified
+            contactRepository.Update(emergencyContact);
+
+            // STEP 5: Save changes
+            await _unitOfWork.SaveChangesAsync();
+
+            // STEP 6: Return updated DTO
+            return _mapper.Map<EmergencyContactResultDto>(emergencyContact);
+        }
+
+        public async Task<bool> DeleteEmergencyContactAsync(int patientId, int contactId)
+        {
+            // STEP 1: Get emergency contact repository
+            var contactRepository = _unitOfWork.GetRepository<EmergencyContact, int>();
+            var emergencyContact = await contactRepository.GetByIdAsync(contactId);
+
+            // STEP 2: Verify contact exists and belongs to patient
+            if (emergencyContact is null || emergencyContact.PatientId != patientId)
+                return false;
+
+            // STEP 3: Delete contact
+            contactRepository.Delete(emergencyContact);
+
+            // STEP 4: Save changes
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+    }
+}

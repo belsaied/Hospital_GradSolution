@@ -20,10 +20,26 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(cfg => { }, typeof(ServiceAssemblyReference).Assembly);
 #region Allow DI for Service Manager with Factory Delegate.
 builder.Services.AddScoped<IServiceManager, ServiceManagerWithFactoryDelegate>();
+
+// Register all services
 builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IAllergyService, AllergyService>();
+builder.Services.AddScoped<IMedicalHistoryService, MedicalHistoryService>();
+builder.Services.AddScoped<IEmergencyContactService, EmergencyContactService>();
+
+// Register factory delegates
 builder.Services.AddScoped<Func<IPatientService>>(provider =>
-() => provider.GetRequiredService<IPatientService>()
-); 
+    () => provider.GetRequiredService<IPatientService>()
+);
+builder.Services.AddScoped<Func<IAllergyService>>(provider =>
+    () => provider.GetRequiredService<IAllergyService>()
+);
+builder.Services.AddScoped<Func<IMedicalHistoryService>>(provider =>
+    () => provider.GetRequiredService<IMedicalHistoryService>()
+);
+builder.Services.AddScoped<Func<IEmergencyContactService>>(provider =>
+    () => provider.GetRequiredService<IEmergencyContactService>()
+);
 #endregion
 builder.Services.AddOpenApi(); 
 #endregion
