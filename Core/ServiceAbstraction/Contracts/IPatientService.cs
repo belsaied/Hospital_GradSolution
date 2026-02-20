@@ -1,14 +1,18 @@
-﻿using Shared.Dtos.PatientModule.PatientDtos;
+﻿using Shared;
+using Shared.Dtos.PatientModule.PatientDtos;
+using Shared.Parameters;
 
 namespace Services.Abstraction.Contracts
 {
     public interface IPatientService
     {
-        // Patient CRUD Operations
         Task<PatientResultDto> RegisterPatientAsync(CreatePatientDto createPatientDto);
         Task<PatientResultDto> GetPatientByIdAsync(int id);
         Task<PatientResultDto> UpdatePatientAsync(int id, UpdatePatientDto updatePatientDto);
         Task<bool> DeactivatePatientAsync(int id);
-        // Task<PaginatedResult<PatientResultDto>> GetAllPatientsAsync(PatientSearchParameters parameters);
+
+        // Two new endpoints
+        Task<PatientWithDetailsResultDto> GetPatientWithDetailsAsync(int id);
+        Task<PaginatedResult<PatientResultDto>> GetAllPatientsAsync(PatientSpecificationParameters parameters);
     }
 }

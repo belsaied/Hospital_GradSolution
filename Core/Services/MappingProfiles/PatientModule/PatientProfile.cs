@@ -39,6 +39,14 @@ namespace Services.MappingProfiles.PatientModule
 
             // UpdatePatientDto -> Patient Mapping
             // update is handled in the service 
+
+            CreateMap<Patient, PatientWithDetailsResultDto>()
+    .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender.ToString()))
+    .ForMember(dest => dest.BloodType, opt => opt.MapFrom(src => src.BloodType.HasValue ? src.BloodType.ToString() : null))
+    .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+    .ForMember(dest => dest.Allergies, opt => opt.MapFrom(src => src.PatientAllergies))
+    .ForMember(dest => dest.MedicalHistories, opt => opt.MapFrom(src => src.PatientMedicalHistories))
+    .ForMember(dest => dest.EmergencyContacts, opt => opt.MapFrom(src => src.EmergencyContacts));
         }
     }
 }

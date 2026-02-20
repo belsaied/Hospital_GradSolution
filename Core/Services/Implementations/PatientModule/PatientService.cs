@@ -3,7 +3,10 @@ using Domain.Contracts;
 using Domain.Models.Enums;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
+using Services.Specifications.PatientModule;
+using Shared;
 using Shared.Dtos.PatientModule.PatientDtos;
+using Shared.Parameters;
 
 namespace Services.Implementations.PatientModule
 {
@@ -109,6 +112,36 @@ namespace Services.Implementations.PatientModule
 
             // STEP 7: Return the updated patient as DTO
             return _mapper.Map<PatientResultDto>(patient);
+        }
+
+        public async Task<PatientWithDetailsResultDto> GetPatientWithDetailsAsync(int id)
+        {
+            var patientRepository = _unitOfWork.GetRepository<Patient, int>();
+            var specification = new PatientWithDetailsSpecification(id);
+            var patient = await patientRepository.GetByIdAsync(specification);
+
+            if (patient is null)
+                return null!;
+
+            return _mapper.Map<PatientWithDetailsResultDto>(patient);
+        }
+
+        public async Task<PaginatedResult<PatientResultDto>> GetAllPatientsAsync(PatientSpecificationParameters parameters)
+        {
+            var patientRepository = _unitOfWork.GetRepository<Patient, int>();
+
+            var specification = new PatientWithDetailsSpecification(parameters);
+            var patients = await patientRepository.GetAllAsync(specification);
+            var patientsResult = _mapper.Map<IEnumerable<PatientResultDto>>(patients);
+
+            var countSpecification = new PatientCountSpecification(parameters);
+            var totalCount = await patientRepository.CountAsync(countSpecification);
+
+            return new PaginatedResult<PatientResultDto>(
+                parameters.PageIndex,
+                parameters.PageSize,
+                totalCount,
+                patientsResult);
         }
     }
 }

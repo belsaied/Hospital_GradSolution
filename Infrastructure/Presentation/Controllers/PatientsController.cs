@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
+using Shared;
 using Shared.Dtos.PatientModule.PatientDtos;
+using Shared.Parameters;
 
 namespace Presentation.Controllers
 {
@@ -40,6 +42,31 @@ namespace Presentation.Controllers
         {
             await _serviceManager.PatientService.DeactivatePatientAsync(id);
             return NoContent();
+        }
+
+
+       
+
+        // GET api/patients — paginated list
+        [HttpGet]
+        [ProducesResponseType(typeof(PaginatedResult<PatientResultDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<PaginatedResult<PatientResultDto>>> GetAllPatients(
+            [FromQuery] PatientSpecificationParameters parameters)
+        {
+            var result = await _serviceManager.PatientService.GetAllPatientsAsync(parameters);
+            return Ok(result);
+        }
+
+        // GET api/patients/{id}/details — single patient with full nested data
+        [HttpGet("{id:int}/details")]
+        [ProducesResponseType(typeof(PatientWithDetailsResultDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PatientWithDetailsResultDto>> GetPatientWithDetails(int id)
+        {
+            var patient = await _serviceManager.PatientService.GetPatientWithDetailsAsync(id);
+            if (patient is null)
+                return NotFound($"Patient with ID {id} not found.");
+            return Ok(patient);
         }
     }
 }
