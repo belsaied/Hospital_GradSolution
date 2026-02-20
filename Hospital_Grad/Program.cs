@@ -1,4 +1,5 @@
 using Domain.Contracts;
+using Hospital_Grad.API.MiddleWares;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
 using Persistence.Implementations;
@@ -56,6 +57,8 @@ var app = builder.Build();
 using var scope = app.Services.CreateScope();
 var ObjOfdataSeeding = scope.ServiceProvider.GetRequiredService<IDataSeeding>();
 await ObjOfdataSeeding.SeedDataAsync();
+
+app.UseGlobalExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

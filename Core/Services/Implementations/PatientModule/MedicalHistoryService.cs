@@ -2,6 +2,7 @@
 using Domain.Contracts;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
+using Services.Exceptions;
 using Shared.Dtos.PatientModule.Medical_History_Dtos;
 
 namespace Services.Implementations.PatientModule
@@ -13,8 +14,17 @@ namespace Services.Implementations.PatientModule
             // STEP 1: Verify patient exists
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepository.GetByIdAsync(patientId);
+
+            //Throw Exception instead of returning null
             if (patient is null)
-                return null!;
+                throw new NotFoundException(nameof(Patient), patientId);
+
+            if (patient.Status != Domain.Models.Enums.PatientStatus.Active)
+                throw new BusinessRuleException("Cannot add medical history to an inactive patient.");
+
+            if (historyDto.DiagnosisDate > DateTime.UtcNow)
+                throw new BusinessRuleException("Diagnosis date cannot be in the future.");
+
 
             // STEP 2: Map DTO to Entity
             var medicalHistory = _mapper.Map<PatientMedicalHistory>(historyDto);
@@ -38,8 +48,11 @@ namespace Services.Implementations.PatientModule
             // STEP 1: Verify patient exists
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepository.GetByIdAsync(patientId);
+
+            //  Throw exception instead of returning empty
             if (patient is null)
-                return Enumerable.Empty<MedicalHistoryResultDto>();
+                throw new NotFoundException(nameof(Patient), patientId);
+
 
             // STEP 2: Get all medical histories
             var historyRepository = _unitOfWork.GetRepository<PatientMedicalHistory, int>();
@@ -59,8 +72,24 @@ namespace Services.Implementations.PatientModule
             var medicalHistory = await historyRepository.GetByIdAsync(historyId);
 
             // STEP 2: Verify medical history exists and belongs to patient
-            if (medicalHistory is null || medicalHistory.PatientId != patientId)
-                return null!;
+            if (medicalHistory is null)
+                throw new NotFoundException(nameof(PatientMedicalHistory), historyId);
+
+            //Verify medical history belongs to patient
+
+            if (medicalHistory.PatientId != patientId)
+                throw new BusinessRuleException($"Medical history with ID {historyId} does not belong to patient {patientId}.");
+
+            // Validate resolution date if provided (Business Rule)
+
+            if (historyDto.ResolutionDate.HasValue)
+            {
+                if (historyDto.ResolutionDate.Value < medicalHistory.DiagnosisDate)
+                    throw new BusinessRuleException("Resolution date cannot be before diagnosis date.");
+
+                if (historyDto.ResolutionDate.Value > DateTime.UtcNow)
+                    throw new BusinessRuleException("Resolution date cannot be in the future.");
+            }
 
             // STEP 3: Update fields if provided
             if (!string.IsNullOrEmpty(historyDto.Treatment))

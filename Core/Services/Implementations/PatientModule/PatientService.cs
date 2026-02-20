@@ -3,6 +3,7 @@ using Domain.Contracts;
 using Domain.Models.Enums;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
+using Services.Exceptions;
 using Services.Specifications.PatientModule;
 using Shared;
 using Shared.Dtos.PatientModule.PatientDtos;
@@ -17,9 +18,17 @@ namespace Services.Implementations.PatientModule
             // soft Delete by changing status to Inactive
             var patientRepository = _unitOfWork.GetRepository<Patient , int>();
             var patient = await patientRepository.GetByIdAsync(id);
-            if (patient is null)
-                return false;     // patient not found
 
+            //Throw Exception If Patient Not Found
+
+            if (patient is null)
+                throw new NotFoundException(nameof(Patient), id);
+
+            //Check if already inactive
+
+            if (patient.Status == PatientStatus.Inactive)
+                throw new BusinessRuleException("Patient is already inactive");
+            //Soft Delete By Changing status
             patient.Status = PatientStatus.Inactive;
             patientRepository.Update(patient);
             await _unitOfWork.SaveChangesAsync();
@@ -30,8 +39,10 @@ namespace Services.Implementations.PatientModule
         {
             var patientRepository = _unitOfWork.GetRepository<Patient , int>();
             var patient = await patientRepository.GetByIdAsync(id);
+
+            //Throw Exception if patient not found
             if (patient is null)
-                return null!;
+                throw new NotFoundException(nameof(Patient), id);
 
             return _mapper.Map<PatientResultDto>(patient);
         }
@@ -72,8 +83,11 @@ namespace Services.Implementations.PatientModule
         {
             var patientRepository = _unitOfWork.GetRepository<Patient , int>();
             var patient =await patientRepository.GetByIdAsync(id);
+
+            // Throw exception if patient not found
             if (patient is null)
-                return null!;
+                throw new  NotFoundException(nameof(Patient), id);
+
             // Update fields
 
             // Update FirstName if provided
@@ -120,8 +134,9 @@ namespace Services.Implementations.PatientModule
             var specification = new PatientWithDetailsSpecification(id);
             var patient = await patientRepository.GetByIdAsync(specification);
 
+            // Throw exception if patient not found
             if (patient is null)
-                return null!;
+                throw new NotFoundException(nameof(Patient), id);
 
             return _mapper.Map<PatientWithDetailsResultDto>(patient);
         }
