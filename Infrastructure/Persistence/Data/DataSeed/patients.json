@@ -9,6 +9,7 @@
     "MedicalRecordNumber": "MRN001",
     "Phone": "01012345678",
     "Email": "ahmed.hassan@email.com",
+    "PictureUrl": "images/patients/ahmed.hassan.jpeg",
     "Address": {
       "Street": "15 Tahrir Street",
       "City": "Cairo",
@@ -28,6 +29,7 @@
     "MedicalRecordNumber": "MRN002",
     "Phone": "01098765432",
     "Email": "fatma.mohamed@email.com",
+    "PictureUrl": "images/patients/fatma.mohamed.jpeg",
     "Address": {
       "Street": "25 Ramses Street",
       "City": "Cairo",
@@ -47,6 +49,7 @@
     "MedicalRecordNumber": "MRN003",
     "Phone": "01123456789",
     "Email": "omar.ibrahim@email.com",
+    "PictureUrl": "images/patients/omar.ibrahim.jpeg",
     "Address": {
       "Street": "42 Nile Corniche",
       "City": "Cairo",
@@ -66,6 +69,7 @@
     "MedicalRecordNumber": "MRN004",
     "Phone": "01234567890",
     "Email": "mona.ali@email.com",
+    "PictureUrl": "images/patients/mona.ali.jpeg",
     "Address": {
       "Street": "8 Zamalek Street",
       "City": "Cairo",
@@ -85,6 +89,7 @@
     "MedicalRecordNumber": "MRN005",
     "Phone": "01098123456",
     "Email": "khaled.mahmoud@email.com",
+    "PictureUrl": "images/patients/khaled.mahmoud.jpeg",
     "Address": {
       "Street": "33 Heliopolis Street",
       "City": "Cairo",

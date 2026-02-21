@@ -16,6 +16,7 @@
         public string Email { get; init; } = string.Empty;
         public AddressDto Address { get; init; } = null!;
         public string Status { get; init; } = string.Empty;
+        public string? PictureUrl { get; init; }
         public DateTime RegistrationDate { get; init; }
     }
 }

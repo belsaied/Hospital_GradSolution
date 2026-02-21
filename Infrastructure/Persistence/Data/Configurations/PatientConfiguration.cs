@@ -1,9 +1,6 @@
 ﻿using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Persistence.Data.Configurations
 {
@@ -58,6 +55,9 @@ namespace Persistence.Data.Configurations
             builder.Property(p => p.Status)
                    .HasConversion<string>()
                    .HasMaxLength(20);
+
+            builder.Property(p => p.PictureUrl)
+                   .HasMaxLength(500);
 
             builder.OwnsOne(p => p.Address, address =>
             {

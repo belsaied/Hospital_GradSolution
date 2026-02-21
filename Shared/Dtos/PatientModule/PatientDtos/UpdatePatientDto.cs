@@ -20,5 +20,6 @@ namespace Shared.Dtos.PatientModule.PatientDtos
         public AddressDto? Address { get; init; }
 
         public PatientStatus? Status { get; init; }
+        public string? PictureUrl { get; init; }
     }
 }

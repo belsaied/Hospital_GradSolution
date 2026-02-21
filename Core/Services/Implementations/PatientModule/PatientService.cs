@@ -116,6 +116,9 @@ namespace Services.Implementations.PatientModule
             if (updatePatientDto.Status.HasValue)
                 patient.Status = updatePatientDto.Status.Value;
 
+            // Update PictureUrl if provided
+            if (!string.IsNullOrEmpty(updatePatientDto.PictureUrl))
+                patient.PictureUrl = updatePatientDto.PictureUrl;
             // STEP 5: Mark the entity as modified
             // This tells Entity Framework to generate an UPDATE SQL statement
             patientRepository.Update(patient);

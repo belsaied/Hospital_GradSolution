@@ -21,6 +21,7 @@ namespace Shared.Dtos.PatientModule.PatientDtos
         public AddressDto Address { get; init; } = null!;
         public string Status { get; init; } = string.Empty;
         public DateTime RegistrationDate { get; init; }
+        public string? PictureUrl { get; init; }
         public IEnumerable<AllergyResultDto> Allergies { get; init; } = [];
         public IEnumerable<MedicalHistoryResultDto> MedicalHistories { get; init; } = [];
         public IEnumerable<EmergencyContactResultDto> EmergencyContacts { get; init; } = [];

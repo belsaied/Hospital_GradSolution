@@ -13,6 +13,7 @@ namespace Domain.Models.PatientModule
         public string MedicalRecordNumber { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string? PictureUrl { get; set; }
         public Address Address { get; set; } = null!;
         public PatientStatus Status { get; set; } = PatientStatus.Active;
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;

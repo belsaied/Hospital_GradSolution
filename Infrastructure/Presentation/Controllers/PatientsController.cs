@@ -68,5 +68,39 @@ namespace Presentation.Controllers
                 return NotFound($"Patient with ID {id} not found.");
             return Ok(patient);
         }
+
+        // Upload patient picture
+        [HttpPost("{id:int}/picture")]
+        [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<PatientResultDto>> UploadPatientPicture(int id, IFormFile file)
+        {
+            if (file is null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("Invalid file type. Only jpg, jpeg, png, and webp are allowed.");
+
+            // Save to wwwroot/images/patients/
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "patients");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            var relativePath = $"images/patients/{uniqueFileName}";
+
+            var updateDto = new UpdatePatientDto { PictureUrl = relativePath };
+            var patient = await _serviceManager.PatientService.UpdatePatientAsync(id, updateDto);
+
+            return Ok(patient);
+        }
     }
 }

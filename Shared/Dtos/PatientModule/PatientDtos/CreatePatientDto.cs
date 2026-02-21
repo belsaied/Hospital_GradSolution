@@ -31,5 +31,6 @@ namespace Shared.Dtos.PatientModule.PatientDtos
 
         [Required]
         public AddressDto Address { get; init; } = null!;
+        public string? PictureUrl { get; init; }
     }
 }
