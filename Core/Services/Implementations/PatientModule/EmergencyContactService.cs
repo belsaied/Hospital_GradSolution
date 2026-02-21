@@ -2,6 +2,7 @@
 using Domain.Contracts;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
+using Services.Exceptions;
 using Shared.Dtos.PatientModule.EmergencyContactsDtos;
 
 namespace Services.Implementations.PatientModule
@@ -13,8 +14,16 @@ namespace Services.Implementations.PatientModule
             // STEP 1: Verify patient exists
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepository.GetByIdAsync(patientId);
+
+            // Throw exception instead of returning null 
             if (patient is null)
-                return null!;
+                throw new NotFoundException(nameof(Patient), patientId);
+
+            // Check if patient is active (Business Rule)
+            if (patient.Status != Domain.Models.Enums.PatientStatus.Active)
+                throw new BusinessRuleException("Cannot add emergency contact to an inactive patient.");
+
+
 
             // STEP 2: Map DTO to Entity
             var emergencyContact = _mapper.Map<EmergencyContact>(contactDto);
@@ -37,8 +46,10 @@ namespace Services.Implementations.PatientModule
             // STEP 1: Verify patient exists
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepository.GetByIdAsync(patientId);
+
+            // Throw Exception 
             if (patient is null)
-                return Enumerable.Empty<EmergencyContactResultDto>();
+                throw new NotFoundException(nameof(Patient), patientId);
 
             // STEP 2: Get all emergency contacts
             var contactRepository = _unitOfWork.GetRepository<EmergencyContact, int>();
@@ -58,8 +69,16 @@ namespace Services.Implementations.PatientModule
             var emergencyContact = await contactRepository.GetByIdAsync(contactId);
 
             // STEP 2: Verify contact exists and belongs to patient
-            if (emergencyContact is null || emergencyContact.PatientId != patientId)
-                return null!;
+            
+                //if (emergencyContact is null || emergencyContact.PatientId != patientId)
+                //    return null!;
+
+            if (emergencyContact is null)
+                throw new NotFoundException(nameof(EmergencyContact), contactId);
+
+            if (emergencyContact.PatientId != patientId)
+                throw new BusinessRuleException($"Emergency contact with ID {contactId} does not belong to patient {patientId}.");
+
 
             // STEP 3: Update fields if provided
             if (!string.IsNullOrEmpty(contactDto.Name))
@@ -100,8 +119,11 @@ namespace Services.Implementations.PatientModule
             var emergencyContact = await contactRepository.GetByIdAsync(contactId);
 
             // STEP 2: Verify contact exists and belongs to patient
-            if (emergencyContact is null || emergencyContact.PatientId != patientId)
-                return false;
+              if (emergencyContact is null)
+                throw new NotFoundException(nameof(EmergencyContact), contactId);
+
+            if (emergencyContact.PatientId != patientId)
+                throw new BusinessRuleException($"Emergency contact with ID {contactId} does not belong to patient {patientId}.");
 
             // STEP 3: Delete contact
             contactRepository.Delete(emergencyContact);
