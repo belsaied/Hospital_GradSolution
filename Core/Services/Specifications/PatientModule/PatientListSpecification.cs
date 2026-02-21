@@ -1,0 +1,19 @@
+﻿using Domain.Models.PatientModule;
+using Shared.Parameters;
+
+namespace Services.Specifications.PatientModule
+{
+    public class PatientListSpecification : BaseSpecifications<Patient,int>
+    {
+        public PatientListSpecification(PatientSpecificationParameters parameters)
+    : base(p =>
+        (string.IsNullOrEmpty(parameters.Search) ||
+         p.FirstName.ToLower().Contains(parameters.Search.ToLower()) ||
+         p.LastName.ToLower().Contains(parameters.Search.ToLower())) &&
+        (!parameters.Status.HasValue || p.Status == parameters.Status.Value))
+        {
+            AddOrderBy(p => p.LastName);
+            ApplyPagination(parameters.PageSize, parameters.PageIndex);
+        }
+    }
+}

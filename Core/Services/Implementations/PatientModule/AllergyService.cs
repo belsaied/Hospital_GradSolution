@@ -3,6 +3,7 @@ using Domain.Contracts;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
+using Services.Specifications.PatientModule;
 using Shared.Dtos.PatientModule.AllergyDtos;
 
 namespace Services.Implementations.PatientModule
@@ -42,23 +43,16 @@ namespace Services.Implementations.PatientModule
 
         public async Task<IEnumerable<AllergyResultDto>> GetPatientAllergiesAsync(int patientId)
         {
-            // STEP 1: Verify patient exists
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepository.GetByIdAsync(patientId);
-
-            //Throw exception instead of returning null     
 
             if (patient is null)
                 throw new NotFoundException(nameof(Patient), patientId);
 
-            // STEP 2: Get all allergies
             var allergyRepository = _unitOfWork.GetRepository<PatientAllergy, int>();
-            var allergies = await allergyRepository.GetAllAsync(asNoTracking: true);
+            var spec = new PatientAllergySpecification(patientId);
+            var patientAllergies = await allergyRepository.GetAllAsync(spec);
 
-            // STEP 3: Filter by patient ID
-            var patientAllergies = allergies.Where(a => a.PatientId == patientId);
-
-            // STEP 4: Map to DTOs
             return _mapper.Map<IEnumerable<AllergyResultDto>>(patientAllergies);
         }
 

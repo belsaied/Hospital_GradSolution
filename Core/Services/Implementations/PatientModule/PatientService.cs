@@ -148,7 +148,7 @@ namespace Services.Implementations.PatientModule
         {
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
 
-            var specification = new PatientWithDetailsSpecification(parameters);
+            var specification = new PatientListSpecification(parameters);
             var patients = await patientRepository.GetAllAsync(specification);
             var patientsResult = _mapper.Map<IEnumerable<PatientResultDto>>(patients);
 

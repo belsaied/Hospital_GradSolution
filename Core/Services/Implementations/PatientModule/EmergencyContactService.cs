@@ -3,6 +3,7 @@ using Domain.Contracts;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
+using Services.Specifications.PatientModule;
 using Shared.Dtos.PatientModule.EmergencyContactsDtos;
 
 namespace Services.Implementations.PatientModule
@@ -43,25 +44,18 @@ namespace Services.Implementations.PatientModule
 
         public async Task<IEnumerable<EmergencyContactResultDto>> GetEmergencyContactsAsync(int patientId)
         {
-            // STEP 1: Verify patient exists
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepository.GetByIdAsync(patientId);
 
-            // Throw Exception 
             if (patient is null)
                 throw new NotFoundException(nameof(Patient), patientId);
 
-            // STEP 2: Get all emergency contacts
             var contactRepository = _unitOfWork.GetRepository<EmergencyContact, int>();
-            var contacts = await contactRepository.GetAllAsync(asNoTracking: true);
+            var spec = new PatientEmergencyContactSpecification(patientId);
+            var patientContacts = await contactRepository.GetAllAsync(spec);
 
-            // STEP 3: Filter by patient ID
-            var patientContacts = contacts.Where(c => c.PatientId == patientId);
-
-            // STEP 4: Map to DTOs
             return _mapper.Map<IEnumerable<EmergencyContactResultDto>>(patientContacts);
         }
-
         public async Task<EmergencyContactResultDto> UpdateEmergencyContactAsync(int patientId, int contactId, UpdateEmergencyContactDto contactDto)
         {
             // STEP 1: Get emergency contact repository
