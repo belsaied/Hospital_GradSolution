@@ -12,7 +12,7 @@ namespace Services.Specifications.PatientModule
          p.LastName.ToLower().Contains(parameters.Search.ToLower())) &&
         (!parameters.Status.HasValue || p.Status == parameters.Status.Value))
         {
-            AddOrderBy(p => p.LastName);
+            AddOrderBy(p => p.Id);
             ApplyPagination(parameters.PageSize, parameters.PageIndex);
         }
     }
