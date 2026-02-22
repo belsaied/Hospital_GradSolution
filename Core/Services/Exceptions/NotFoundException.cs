@@ -4,17 +4,8 @@ using System.Text;
 
 namespace Services.Exceptions
 {
-    public  class NotFoundException : Exception
-    {
-        public NotFoundException(string entityName, object Key):base($"{entityName} with Id {Key} Was not Found.") 
-        {
-        }
-        public NotFoundException(string message):base(message)
-        {
-        }
-        public NotFoundException(string entityName,object Key ,Exception exception) : base($"{entityName} With Id {Key} Was Not Found",exception)
-        {
-        }
-    }
+    public abstract class NotFoundException(string Message) : Exception(Message);
+    
+    public sealed class PatientNotFoundException(int Id):NotFoundException($"Patient with Id: {Id} is not found");
    
 }

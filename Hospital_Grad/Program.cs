@@ -1,5 +1,7 @@
 using Domain.Contracts;
+using Hospital_Grad.API.Factories;
 using Hospital_Grad.API.MiddleWares;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
 using Persistence.Implementations;
@@ -49,7 +51,12 @@ builder.Services.AddScoped<Func<IEmergencyContactService>>(provider =>
     () => provider.GetRequiredService<IEmergencyContactService>()
 );
 #endregion
-builder.Services.AddOpenApi(); 
+builder.Services.AddOpenApi();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
+});
+
 #endregion
 builder.Services.AddScoped<IDataSeeding, DataSeeding>();
 var app = builder.Build();
@@ -58,8 +65,7 @@ using var scope = app.Services.CreateScope();
 var ObjOfdataSeeding = scope.ServiceProvider.GetRequiredService<IDataSeeding>();
 await ObjOfdataSeeding.SeedDataAsync();
 
-app.UseGlobalExceptionHandler();
-
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
