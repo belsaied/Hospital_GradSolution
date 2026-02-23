@@ -1,76 +1,28 @@
-using Domain.Contracts;
-using Hospital_Grad.API.Factories;
-using Hospital_Grad.API.MiddleWares;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Persistence.Data.DbContexts;
-using Persistence.Implementations;
-using Services;
-using Services.Abstraction.Contracts;
-using Services.Implementations;
-using Services.Implementations.PatientModule;
+using Hospital_Grad.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-#region Services Configuration
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
-    });
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.UseInlineDefinitionsForEnums();
-});
-builder.Services.AddDbContext<HospitalDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddAutoMapper(cfg => { }, typeof(ServiceAssemblyReference).Assembly);
-#region Allow DI for Service Manager with Factory Delegate.
-builder.Services.AddScoped<IServiceManager, ServiceManagerWithFactoryDelegate>();
+// Add WebApiServices
+builder.Services.AddWebApiServices();
 
-// Register all services
-builder.Services.AddScoped<IPatientService, PatientService>();
-builder.Services.AddScoped<IAllergyService, AllergyService>();
-builder.Services.AddScoped<IMedicalHistoryService, MedicalHistoryService>();
-builder.Services.AddScoped<IEmergencyContactService, EmergencyContactService>();
+// Add infrastructure services
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// Register factory delegates
-builder.Services.AddScoped<Func<IPatientService>>(provider =>
-    () => provider.GetRequiredService<IPatientService>()
-);
-builder.Services.AddScoped<Func<IAllergyService>>(provider =>
-    () => provider.GetRequiredService<IAllergyService>()
-);
-builder.Services.AddScoped<Func<IMedicalHistoryService>>(provider =>
-    () => provider.GetRequiredService<IMedicalHistoryService>()
-);
-builder.Services.AddScoped<Func<IEmergencyContactService>>(provider =>
-    () => provider.GetRequiredService<IEmergencyContactService>()
-);
-#endregion
 builder.Services.AddOpenApi();
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
-});
 
-#endregion
-builder.Services.AddScoped<IDataSeeding, DataSeeding>();
+// Add core services
+builder.Services.AddCoreServices();
+
 var app = builder.Build();
+// Seed the database with WebApplication extension method
+await app.SeedDatabaseAsync();
+// Use global exception handling middleware
+app.UseExceptionHandlingMiddlewares();
 
-using var scope = app.Services.CreateScope();
-var ObjOfdataSeeding = scope.ServiceProvider.GetRequiredService<IDataSeeding>();
-await ObjOfdataSeeding.SeedDataAsync();
 
-app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerMiddlewares();
 }
 app.UseHttpsRedirection();
 app.UseStaticFiles();

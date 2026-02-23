@@ -75,7 +75,7 @@ namespace Presentation.Controllers
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<PatientResultDto>> UploadPatientPicture(int id,[FromForm] IFormFile file)
+        public async Task<ActionResult<PatientResultDto>> UploadPatientPicture(int id, IFormFile file)
         {
             if (file is null || file.Length == 0)
                 return BadRequest("No file uploaded.");
