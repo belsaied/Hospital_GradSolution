@@ -19,6 +19,7 @@ namespace Hospital_Grad.API.Extensions
         }
         public static WebApplication UseSwaggerMiddlewares(this WebApplication app)
         {
+            app.MapOpenApi();
             app.UseSwagger();
             app.UseSwaggerUI();
             return app;

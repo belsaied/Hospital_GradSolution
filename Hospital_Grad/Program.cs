@@ -7,8 +7,6 @@ builder.Services.AddWebApiServices();
 // Add infrastructure services
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-builder.Services.AddOpenApi();
-
 // Add core services
 builder.Services.AddCoreServices();
 
@@ -21,7 +19,6 @@ app.UseExceptionHandlingMiddlewares();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwaggerMiddlewares();
 }
 app.UseHttpsRedirection();

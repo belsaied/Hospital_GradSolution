@@ -17,13 +17,13 @@ namespace Hospital_Grad.API.Extensions
                     });
 
             services.AddEndpointsApiExplorer();
-
+            services.AddOpenApi();
             services.AddSwaggerGen(options =>
             {
                 options.UseInlineDefinitionsForEnums();
             });
 
-           services.Configure<ApiBehaviorOptions>(options =>
+            services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
             });
