@@ -1,60 +1,69 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services.Exceptions;
-using Shared.Responces;
-using System;
-using System.Net;
-using System.Text.Json;
 
 namespace Hospital_Grad.API.MiddleWares
 {
-    public class GlobalExceptionHandlingMiddleware(RequestDelegate _next, ILogger<GlobalExceptionHandlingMiddleware> _logger)
+    public class GlobalExceptionHandlingMiddleware(
+        RequestDelegate _next,
+        ILogger<GlobalExceptionHandlingMiddleware> _logger)
     {
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
                 await _next.Invoke(context);
-                await NotFoundEndPointException(context);
+                await HandleNotFoundEndpointAsync(context);
             }
             catch (Exception ex)
             {
-                #region Logging The Error
                 _logger.LogError(ex, "An unhandled exception occurred.");
-                #endregion
-
-                #region Return Custom Response
-                var response = new ProblemDetails()
-                { 
-                 Title="An error occurred while processing your request.",
-                 Detail= ex.Message,
-                 Instance=context.Request.Path,
-                 Status= ex switch
-                 {
-                     NotFoundException =>StatusCodes.Status404NotFound,
-                     _ => StatusCodes.Status500InternalServerError
-                 }
-                };
-                context.Response.StatusCode=response.Status.Value;
-                await context.Response.WriteAsJsonAsync(response);
-                #endregion
+                await HandleExceptionAsync(context, ex);
             }
         }
 
-        private static async Task NotFoundEndPointException(HttpContext context)
+        private static async Task HandleNotFoundEndpointAsync(HttpContext context)
         {
             if (context.Response.StatusCode == StatusCodes.Status404NotFound)
             {
-                var response = new ProblemDetails()
+                var response = new ProblemDetails
                 {
-                    Title = "Error while processing the HTTP Request -EndPoint is not found",
-                    Detail = $"The requested EndPoint at {context.Request.Path} is not found.",
+                    Title = "Endpoint Not Found",
+                    Detail = $"The requested endpoint at {context.Request.Path} was not found.",
                     Instance = context.Request.Path,
                     Status = StatusCodes.Status404NotFound
                 };
+                context.Response.ContentType = "application/json";
                 await context.Response.WriteAsJsonAsync(response);
             }
         }
 
+        private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
+        {
+            var statusCode = ex switch
+            {
+                NotFoundException => StatusCodes.Status404NotFound,
+                BusinessRuleException => StatusCodes.Status400BadRequest,
+                _ => StatusCodes.Status500InternalServerError
+            };
 
+            var response = new ProblemDetails
+            {
+                Title = GetTitle(ex),
+                Detail = ex.Message,
+                Instance = context.Request.Path,
+                Status = statusCode
+            };
+
+            context.Response.StatusCode = statusCode;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(response);
+        }
+
+        private static string GetTitle(Exception ex) => ex switch
+        {
+            NotFoundException => "Resource Not Found",
+            BusinessRuleException => "Business Rule Violation",
+            _ => "An unexpected error occurred"
+        };
     }
 }
