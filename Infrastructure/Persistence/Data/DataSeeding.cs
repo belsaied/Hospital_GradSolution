@@ -1,4 +1,5 @@
 ﻿using Domain.Contracts;
+using Domain.Models.DoctorModule;
 using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
@@ -25,6 +26,7 @@ public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
             };
 
             //  Patients
+            #region Patient Module
             if (!await _dbContext.Patients.AnyAsync())
             {
                 var patientsPath = Path.Combine(basePath, "patients.json");
@@ -65,7 +67,51 @@ public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
 
                 if (contacts?.Any() == true)
                     await _dbContext.EmergencyContacts.AddRangeAsync(contacts);
+            } 
+            #endregion
+
+            await _dbContext.SaveChangesAsync();
+
+            //Doctor Module 
+            #region Doctor Module
+            if (!await _dbContext.Departments.AnyAsync())
+            {
+                var departmentsPath = Path.Combine(basePath, "departments.json");
+                var departments = await LoadJsonAsync<Department>(departmentsPath, jsonOptions);
+                if (departments?.Any() == true)
+                {
+                    await _dbContext.Departments.AddRangeAsync(departments);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
+
+            if (!await _dbContext.Doctors.AnyAsync())
+            {
+                var doctorPath = Path.Combine(basePath, "doctors.json");
+                var doctor = await LoadJsonAsync<Doctor>(doctorPath, jsonOptions);
+                if (doctor?.Any() == true)
+                {
+                    await _dbContext.Doctors.AddRangeAsync(doctor);
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+            if (!await _dbContext.DoctorQualifications.AnyAsync())
+            {
+                var qualsPath = Path.Combine(basePath, "doctor-qualifications.json");
+                var qualifications = await LoadJsonAsync<DoctorQualification>(qualsPath, jsonOptions);
+                if (qualifications?.Any() == true)
+                    await _dbContext.DoctorQualifications.AddRangeAsync(qualifications);
+            }
+
+            if (!await _dbContext.DoctorSchedules.AnyAsync())
+            {
+                var schedulesPath = Path.Combine(basePath, "doctor-schedules.json");
+                var schedules = await LoadJsonAsync<DoctorSchedule>(schedulesPath, jsonOptions);
+                if (schedules?.Any() == true)
+                    await _dbContext.DoctorSchedules.AddRangeAsync(schedules);
+            }
+
+            #endregion
 
             await _dbContext.SaveChangesAsync();
         }

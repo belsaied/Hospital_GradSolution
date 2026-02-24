@@ -41,8 +41,11 @@ namespace Hospital_Grad.API.MiddleWares
         {
             var statusCode = ex switch
             {
+                //Updated =>Abdo
                 NotFoundException => StatusCodes.Status404NotFound,
-                BusinessRuleException => StatusCodes.Status400BadRequest,
+                ConflictException => StatusCodes.Status409Conflict,
+                ValidationException => StatusCodes.Status400BadRequest,
+                BusinessRuleException => StatusCodes.Status422UnprocessableEntity,
                 _ => StatusCodes.Status500InternalServerError
             };
 
@@ -61,7 +64,10 @@ namespace Hospital_Grad.API.MiddleWares
 
         private static string GetTitle(Exception ex) => ex switch
         {
+            //Updated =>Abdo
             NotFoundException => "Resource Not Found",
+            ConflictException => "Confilct",
+            ValidationException => "Validation Error",
             BusinessRuleException => "Business Rule Violation",
             _ => "An unexpected error occurred"
         };

@@ -1,0 +1,44 @@
+[
+  {
+    "Name": "Cardiology",
+    "Description": "Diagnosis and treatment of heart and cardiovascular diseases",
+    "HeadDoctorId": null,
+    "PhoneExtension": "1001"
+  },
+  {
+    "Name": "Pediatrics",
+    "Description": "Medical care for infants, children, and adolescents",
+    "HeadDoctorId": null,
+    "PhoneExtension": "1002"
+  },
+  {
+    "Name": "Orthopedics",
+    "Description": "Treatment of musculoskeletal system disorders and injuries",
+    "HeadDoctorId": null,
+    "PhoneExtension": "1003"
+  },
+  {
+    "Name": "Neurology",
+    "Description": "Diagnosis and treatment of nervous system disorders",
+    "HeadDoctorId": null,
+    "PhoneExtension": "1004"
+  },
+  {
+    "Name": "Emergency",
+    "Description": "Acute care for life-threatening conditions",
+    "HeadDoctorId": null,
+    "PhoneExtension": "1005"
+  },
+  {
+    "Name": "Dermatology",
+    "Description": "Diagnosis and treatment of skin, hair, and nail conditions",
+    "HeadDoctorId": null,
+    "PhoneExtension": "1006"
+  },
+  {
+    "Name": "Oncology",
+    "Description": "Diagnosis and treatment of cancer",
+    "HeadDoctorId": null,
+    "PhoneExtension": "1007"
+  }
+]
