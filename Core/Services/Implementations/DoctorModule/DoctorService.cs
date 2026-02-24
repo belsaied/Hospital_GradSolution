@@ -86,7 +86,7 @@ namespace Services.Implementations.DoctorModule
             return _mapper.Map<DoctorResultDto>(updated!);
 
         }
-        public async Task<bool> DeactiveDoctorAsync(int id)
+        public async Task<bool> DeactivateDoctorAsync(int id)
         {
             var doctorRepo = _unitOfWork.GetRepository<Doctor, int>();
             var doctor = await doctorRepo.GetByIdAsync(id);
@@ -228,6 +228,7 @@ namespace Services.Implementations.DoctorModule
             return _mapper.Map<IEnumerable<DoctorResultDto>>(doctors);
 
         }
-       
+
+        
     }
 }

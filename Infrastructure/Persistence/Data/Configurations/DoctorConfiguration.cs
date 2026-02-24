@@ -52,7 +52,7 @@ namespace Persistence.Data.Configurations
                 .HasMaxLength(100)
                 .IsRequired();
 
-            builder.Property(x => x.YearOfExperience)
+            builder.Property(x => x.YearsOfExperience)
                 .HasDefaultValue(0);
 
             builder.Property(x => x.ConsultationFee)
