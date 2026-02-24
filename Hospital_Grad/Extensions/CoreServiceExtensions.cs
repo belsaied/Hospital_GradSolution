@@ -21,6 +21,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IDoctorService, DoctorService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
 
+
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
                 () => provider.GetRequiredService<IPatientService>()
