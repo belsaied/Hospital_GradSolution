@@ -22,7 +22,16 @@ namespace Hospital_Grad.API.Extensions
             {
                 options.UseInlineDefinitionsForEnums();
             });
-
+            // Ngrok CORS policy
+            services.AddCors(options =>
+            {
+                options.AddPolicy("NgrokPolicy", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
