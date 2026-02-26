@@ -12,7 +12,7 @@
     "DepartmentId": 1,
     "YearsOfExperience": 18,
     "ConsultationFee": 500.00,
-    "PictureUrl": "images/doctors/khaled.mansour.jpeg",
+    "PictureUrl": "images/doctors/khaled.mansour.jpg",
     "Bio": "Senior cardiologist with 18 years of experience in interventional procedures.",
     "Status": "Active",
     "JoinDate": "2010-03-01T00:00:00"
@@ -30,7 +30,7 @@
     "DepartmentId": 2,
     "YearsOfExperience": 11,
     "ConsultationFee": 350.00,
-    "PictureUrl": "images/doctors/dina.el-sayed.jpeg",
+    "PictureUrl": "images/doctors/dina.el-sayed.jpg",
     "Bio": "Specialist in pediatric neurological disorders with a focus on epilepsy.",
     "Status": "Active",
     "JoinDate": "2014-06-15T00:00:00"
@@ -48,7 +48,7 @@
     "DepartmentId": 3,
     "YearsOfExperience": 22,
     "ConsultationFee": 600.00,
-    "PictureUrl": "images/doctors/tarek.hassan.jpeg",
+    "PictureUrl": "images/doctors/tarek.hassan.jpg",
     "Bio": "Expert in joint replacement and sports injury rehabilitation.",
     "Status": "Active",
     "JoinDate": "2007-09-01T00:00:00"
@@ -66,7 +66,7 @@
     "DepartmentId": 4,
     "YearsOfExperience": 7,
     "ConsultationFee": 400.00,
-    "PictureUrl": "images/doctors/marwa.ibrahim.jpeg",
+    "PictureUrl": "images/doctors/marwa.ibrahim.jpg",
     "Bio": "Neurologist specializing in stroke management and headache disorders.",
     "Status": "OnLeave",
     "JoinDate": "2018-01-10T00:00:00"
@@ -84,7 +84,7 @@
     "DepartmentId": 5,
     "YearsOfExperience": 15,
     "ConsultationFee": 300.00,
-    "PictureUrl": "images/doctors/youssef.kamal.jpeg",
+    "PictureUrl": "images/doctors/youssef.kamal.jpg",
     "Bio": "Emergency physician with extensive trauma and critical care experience.",
     "Status": "Active",
     "JoinDate": "2012-04-20T00:00:00"
@@ -102,7 +102,7 @@
     "DepartmentId": 1,
     "YearsOfExperience": 16,
     "ConsultationFee": 550,
-    "PictureUrl": "images/doctors/ahmed.elsharkawy.jpeg",
+    "PictureUrl": "images/doctors/ahmed.elsharkawy.jpg",
     "Bio": "Interventional cardiologist specializing in coronary artery disease and heart failure management.",
     "Status": "Active",
     "JoinDate": "2011-01-10T00:00:00"
@@ -138,7 +138,7 @@
     "DepartmentId": 3,
     "YearsOfExperience": 24,
     "ConsultationFee": 650,
-    "PictureUrl": "images/doctors/mohamed.fawzy.jpeg",
+    "PictureUrl": "images/doctors/mohamed.fawzy.jpg",
     "Bio": "Senior orthopedic surgeon specializing in spine surgery and complex fracture management.",
     "Status": "Active",
     "JoinDate": "2006-05-15T00:00:00"
@@ -174,7 +174,7 @@
     "DepartmentId": 8,
     "YearsOfExperience": 14,
     "ConsultationFee": 500,
-    "PictureUrl": "images/doctors/sameh.gouda.jpeg",
+    "PictureUrl": "images/doctors/sameh.gouda.jpg",
     "Bio": "Psychiatrist specializing in anxiety disorders, depression, and cognitive behavioral therapy.",
     "Status": "Active",
     "JoinDate": "2012-06-20T00:00:00"
@@ -192,7 +192,7 @@
     "DepartmentId": 9,
     "YearsOfExperience": 11,
     "ConsultationFee": 420,
-    "PictureUrl": "images/doctors/rania.khalil.jpeg",
+    "PictureUrl": "images/doctors/rania.khalil.png",
     "Bio": "Ophthalmologist specializing in cataract surgery, glaucoma management, and LASIK procedures.",
     "Status": "Active",
     "JoinDate": "2014-02-01T00:00:00"
@@ -210,7 +210,7 @@
     "DepartmentId": 10,
     "YearsOfExperience": 19,
     "ConsultationFee": 480,
-    "PictureUrl": "images/doctors/tarek.salama.jpeg",
+    "PictureUrl": "images/doctors/tarek.salama.jpg",
     "Bio": "ENT specialist with extensive experience in sinus surgery, hearing disorders, and head & neck oncology.",
     "Status": "Active",
     "JoinDate": "2009-07-10T00:00:00"
@@ -228,7 +228,7 @@
     "DepartmentId": 11,
     "YearsOfExperience": 13,
     "ConsultationFee": 520,
-    "PictureUrl": "images/doctors/dalia.hassan.jpeg",
+    "PictureUrl": "images/doctors/dalia.hassan.jpg",
     "Bio": "Gynecologist and obstetrician specializing in high-risk pregnancies and minimally invasive surgery.",
     "Status": "Active",
     "JoinDate": "2013-01-15T00:00:00"
@@ -246,7 +246,7 @@
     "DepartmentId": 2,
     "YearsOfExperience": 17,
     "ConsultationFee": 350,
-    "PictureUrl": "images/doctors/karim.naguib.jpeg",
+    "PictureUrl": "images/doctors/karim.naguib.png",
     "Bio": "Pediatrician specializing in newborn care, childhood development disorders, and vaccinations.",
     "Status": "Active",
     "JoinDate": "2010-09-01T00:00:00"
@@ -264,7 +264,7 @@
     "DepartmentId": 15,
     "YearsOfExperience": 8,
     "ConsultationFee": 700,
-    "PictureUrl": "images/doctors/yasmine.elbadry.jpeg",
+    "PictureUrl": "images/doctors/yasmine.elbadry.jpg",
     "Bio": "General surgeon specializing in laparoscopic procedures, appendectomy, and hernia repair.",
     "Status": "Active",
     "JoinDate": "2017-04-01T00:00:00"

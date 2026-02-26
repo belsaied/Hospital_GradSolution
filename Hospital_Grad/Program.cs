@@ -1,4 +1,5 @@
 using Hospital_Grad.API.Extensions;
+using Presentation.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add WebApiServices
@@ -25,5 +26,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("NgrokPolicy");
 app.UseAuthorization();
+app.UseWebSockets();
 app.MapControllers();
+app.MapHub<AppointmentHub>("/hubs/appointments");
 app.Run();

@@ -15,7 +15,7 @@ namespace Hospital_Grad.API.Extensions
                             new System.Text.Json.Serialization.JsonStringEnumConverter()
                         );
                     });
-
+            services.AddSignalR();
             services.AddEndpointsApiExplorer();
             services.AddOpenApi();
             services.AddSwaggerGen(options =>
