@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Domain.Models.Enums.DoctorEnums
 {
-    public enum DayOfWeek
+    public enum DayOfWeeks
     {
         Monday = 1,
         Tuesday = 2,

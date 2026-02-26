@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Models.Enums.DoctorEnums;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace Shared.Dtos.DoctorModule.DoctorDtos
     public record CreateScheduleDto
     {
         [Required]
-        public DayOfWeek DayOfWeek { get; init; }
+        public DayOfWeeks DayOfWeek { get; init; }
 
         [Required]
         public TimeOnly StartTime { get; init; }

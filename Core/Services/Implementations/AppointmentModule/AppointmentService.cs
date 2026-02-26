@@ -43,7 +43,7 @@ namespace Services.Implementations.AppointmentModule
             // 4. StartTime must fall within a DoctorSchedule slot for that DayOfWeek
             var dayOfWeek = (System.DayOfWeek)((int)dto.AppointmentDate.DayOfWeek);
             // Convert to our custom enum (Monday=1 ... Sunday=7)
-            var customDay = (Domain.Models.Enums.DoctorEnums.DayOfWeek)
+            var customDay = (Domain.Models.Enums.DoctorEnums.DayOfWeeks)
                 ((int)dayOfWeek == 0 ? 7 : (int)dayOfWeek);
             var matchingSchedule = doctor.AvailabilitySchedules
                 .FirstOrDefault(s => s.DayOfWeek == customDay &&
@@ -189,7 +189,7 @@ namespace Services.Implementations.AppointmentModule
 
             // Get doctor's schedule for that day
             var systemDayOfWeek = (System.DayOfWeek)((int)date.DayOfWeek);
-            var customDay = (Domain.Models.Enums.DoctorEnums.DayOfWeek)
+            var customDay = (Domain.Models.Enums.DoctorEnums.DayOfWeeks)
                 ((int)systemDayOfWeek == 0 ? 7 : (int)systemDayOfWeek);
             var schedule = doctor.AvailabilitySchedules
                 .FirstOrDefault(s => s.DayOfWeek == customDay && s.IsAvailable);

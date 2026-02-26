@@ -12,8 +12,9 @@ namespace Persistence.Data.Configurations
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Status)
-                   .HasConversion<string>().HasMaxLength(20).IsRequired()
-                   .HasDefaultValue("Scheduled");
+                   .HasConversion<string>()
+                   .HasMaxLength(20)
+                   .IsRequired();
 
             builder.Property(x => x.Type)
                    .HasConversion<string>().HasMaxLength(20).IsRequired();
