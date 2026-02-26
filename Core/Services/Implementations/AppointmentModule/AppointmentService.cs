@@ -223,6 +223,54 @@ namespace Services.Implementations.AppointmentModule
             aptRepo.Update(apt);
             await _unitOfWork.SaveChangesAsync();
 
+            // ── SignalR Notifications ────────────────────────────────────────────
+            switch (dto.NewStatus)
+            {
+                case AppointmentStatus.Confirmed:
+                    await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentConfirmed", new
+                    {
+                        appointmentId = apt.Id,
+                        confirmationNumber = apt.ConfirmationNumber,
+                        doctorName = $"{apt.Doctor.FirstName} {apt.Doctor.LastName}",
+                        date = apt.AppointmentDate.ToString("yyyy-MM-dd"),
+                        startTime = apt.StartTime.ToString("HH:mm")
+                    });
+                    break;
+
+                case AppointmentStatus.Completed:
+                    await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentCompleted", new
+                    {
+                        appointmentId = apt.Id,
+                        confirmationNumber = apt.ConfirmationNumber,
+                        notes = apt.Notes
+                    });
+                    break;
+
+                case AppointmentStatus.Cancelled:
+                    var cancelPayload = new
+                    {
+                        appointmentId = apt.Id,
+                        confirmationNumber = apt.ConfirmationNumber,
+                        cancellationReason = apt.CancellationReason,
+                        date = apt.AppointmentDate.ToString("yyyy-MM-dd"),
+                        startTime = apt.StartTime.ToString("HH:mm")
+                    };
+                    await _notifier.NotifyDoctorAsync(apt.DoctorId, "AppointmentCancelled", cancelPayload);
+                    await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentCancelled", cancelPayload);
+                    break;
+
+                case AppointmentStatus.NoShow:
+                    await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentNoShow", new
+                    {
+                        appointmentId = apt.Id,
+                        confirmationNumber = apt.ConfirmationNumber,
+                        date = apt.AppointmentDate.ToString("yyyy-MM-dd"),
+                        startTime = apt.StartTime.ToString("HH:mm")
+                    });
+                    break;
+            }
+            // ────────────────────────────────────────────────────────────────────
+
             var updated = await aptRepo.GetByIdAsync(new AppointmentWithDetailsSpecification(id));
             return _mapper.Map<AppointmentResultDto>(updated!);
         }
@@ -321,16 +369,16 @@ namespace Services.Implementations.AppointmentModule
             IGenericRepository<Appointment, int> aptRepo)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var rng = new Random();
+            var rng = Random.Shared; 
             string number;
             do
             {
                 var suffix = new string(Enumerable.Repeat(chars, 6)
                     .Select(s => s[rng.Next(s.Length)]).ToArray());
                 number = $"APT-{date:yyyyMMdd}-{suffix}";
-                var existing = await aptRepo.GetAllAsync(asNoTracking: true);
-                if (!existing.Any(a => a.ConfirmationNumber == number)) break;
-            } while (true);
+            }
+            while (await aptRepo.CountAsync(
+                new ConfirmationNumberExistsSpecification(number)) > 0);
             return number;
         }
     }

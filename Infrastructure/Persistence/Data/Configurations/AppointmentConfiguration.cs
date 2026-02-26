@@ -26,7 +26,7 @@ namespace Persistence.Data.Configurations
             builder.Property(x => x.CancellationReason).HasMaxLength(500);
 
             builder.Property(x => x.ConfirmationNumber)
-                   .HasMaxLength(20).IsRequired();
+                   .HasMaxLength(25).IsRequired();
             builder.HasIndex(x => x.ConfirmationNumber).IsUnique();
 
             builder.Property(x => x.AppointmentDate)

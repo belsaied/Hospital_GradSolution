@@ -59,7 +59,7 @@ namespace Presentation.Controllers
         //Get  /api/doctors
         [HttpGet]
         [ProducesResponseType(typeof(PaginatedResult<DoctorResultDto>) , StatusCodes.Status200OK)]
-        public async Task<ActionResult<PaginatedResult<DoctorResultDto>>> GetAllDoctors([FromBody] DoctorSpecificationParameters parameters)
+        public async Task<ActionResult<PaginatedResult<DoctorResultDto>>> GetAllDoctors([FromQuery] DoctorSpecificationParameters parameters)
                   => Ok(await _serviceManager.DoctorService.GetAllDoctorsAsync(parameters));
 
 

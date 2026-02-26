@@ -1,5 +1,6 @@
 ﻿using Hospital_Grad.API.Factories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Hospital_Grad.API.Extensions
 {
@@ -22,14 +23,15 @@ namespace Hospital_Grad.API.Extensions
             {
                 options.UseInlineDefinitionsForEnums();
             });
-            // Ngrok CORS policy
+            //  CORS policies for development 
             services.AddCors(options =>
             {
-                options.AddPolicy("NgrokPolicy", policy =>
+                options.AddPolicy("DevPolicy", policy =>
                 {
-                    policy.AllowAnyOrigin()
+                    policy.WithOrigins()
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod()
+                          .AllowCredentials();         // Required for SignalR WebSocket upgrade
                 });
             });
             services.Configure<ApiBehaviorOptions>(options =>
