@@ -1,9 +1,6 @@
 ﻿using Domain.Models.DoctorModule;
 using Domain.Models.Enums.DoctorEnums;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using DayOfWeek = System.DayOfWeek;
+
 
 namespace Services.Specifications.DoctorModule
 {
@@ -11,9 +8,10 @@ namespace Services.Specifications.DoctorModule
     {
         public DoctorAvailableOnDateSpecification(DateTime date)
             : base(d => d.Status == DoctorStatus.Active &&
-                        d.AvailabilitySchedules.Any(s =>
-                            s.IsAvailable &&
-                            s.DayOfWeek == (DayOfWeek)((int)date.DayOfWeek == 0 ? 7 : (int)date.DayOfWeek)))
+            d.AvailabilitySchedules.Any(s =>
+                s.IsAvailable &&
+                s.DayOfWeek == (Domain.Models.Enums.DoctorEnums.DayOfWeek)
+                    (date.DayOfWeek == 0 ? 7 : date.DayOfWeek)))
         {
             AddInclude(d => d.Department);
             AddInclude(d => d.AvailabilitySchedules);

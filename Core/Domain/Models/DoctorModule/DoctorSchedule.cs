@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿using DayOfWeek = Domain.Models.Enums.DoctorEnums.DayOfWeek;
 namespace Domain.Models.DoctorModule
 {
     public class DoctorSchedule :BaseEntity<int>
