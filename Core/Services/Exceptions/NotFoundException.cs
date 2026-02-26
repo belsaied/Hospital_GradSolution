@@ -75,4 +75,12 @@
     }
     #endregion
 
+    #region Appointment Module
+    public sealed class AppointmentNotFoundException : NotFoundException
+    {
+        public AppointmentNotFoundException(int id)
+            : base("Appointment", id) { }
+    }
+    #endregion
+
 }

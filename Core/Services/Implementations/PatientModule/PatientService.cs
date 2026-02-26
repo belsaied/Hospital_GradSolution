@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
-using Domain.Models.Enums;
+using Domain.Models.Enums.PatientEnums;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;

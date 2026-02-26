@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
+using Domain.Models.Enums.PatientEnums;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
@@ -20,7 +21,7 @@ namespace Services.Implementations.PatientModule
             if (patient is null)
                 throw new NotFoundException(nameof(Patient), patientId);
 
-            if (patient.Status != Domain.Models.Enums.PatientStatus.Active)
+            if (patient.Status != PatientStatus.Active)
                 throw new BusinessRuleException("Cannot add medical history to an inactive patient.");
 
             if (historyDto.DiagnosisDate > DateTime.UtcNow)

@@ -1,5 +1,5 @@
-﻿using Domain.Models.Enums;
-using Domain.Models.Enums.DoctorEnums;
+﻿using Domain.Models.Enums.DoctorEnums;
+using Domain.Models.Enums.PatientEnums;
 using System;
 using System.Collections.Generic;
 using System.Text;

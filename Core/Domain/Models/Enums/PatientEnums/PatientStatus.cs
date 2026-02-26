@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Domain.Models.Enums
+namespace Domain.Models.Enums.PatientEnums
 {
     public enum PatientStatus
     {

@@ -1,4 +1,5 @@
 ﻿using Domain.Contracts;
+using Domain.Models.AppointmentModule;
 using Domain.Models.DoctorModule;
 using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,6 @@ public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
                 Converters = { new JsonStringEnumConverter() }
             };
 
-            //  Patients
             #region Patient Module
             if (!await _dbContext.Patients.AnyAsync())
             {
@@ -69,10 +69,8 @@ public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
                     await _dbContext.EmergencyContacts.AddRangeAsync(contacts);
             } 
             #endregion
-
             await _dbContext.SaveChangesAsync();
 
-            //Doctor Module 
             #region Doctor Module
             if (!await _dbContext.Departments.AnyAsync())
             {
@@ -112,7 +110,17 @@ public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
             }
 
             #endregion
+            await _dbContext.SaveChangesAsync();
 
+            #region Appointment Module
+            if (!await _dbContext.Appointments.AnyAsync())
+            {
+                var aptPath = Path.Combine(basePath, "appointments.json");
+                var appointments = await LoadJsonAsync<Appointment>(aptPath, jsonOptions);
+                if (appointments?.Any() == true)
+                    await _dbContext.Appointments.AddRangeAsync(appointments);
+            }
+            #endregion
             await _dbContext.SaveChangesAsync();
         }
         catch (Exception ex)

@@ -1,8 +1,5 @@
-﻿using Domain.Models.Enums;
-using System;
-using System.Collections.Generic;
+﻿using Domain.Models.Enums.PatientEnums;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace Shared.Dtos.DoctorModule.DoctorDtos
 {

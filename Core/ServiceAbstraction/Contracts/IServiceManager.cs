@@ -14,5 +14,10 @@
         public IDepartmentService DepartmentService { get; }
 
         #endregion
+
+        #region Appointment
+        public IAppointmentService AppointmentService { get; } 
+        #endregion
+
     }
 }

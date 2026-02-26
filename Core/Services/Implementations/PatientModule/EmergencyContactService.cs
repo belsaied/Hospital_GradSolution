@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
+using Domain.Models.Enums.PatientEnums;
 using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
@@ -21,7 +22,7 @@ namespace Services.Implementations.PatientModule
                 throw new NotFoundException(nameof(Patient), patientId);
 
             // Check if patient is active (Business Rule)
-            if (patient.Status != Domain.Models.Enums.PatientStatus.Active)
+            if (patient.Status != PatientStatus.Active)
                 throw new BusinessRuleException("Cannot add emergency contact to an inactive patient.");
 
 

@@ -1,6 +1,7 @@
 ﻿using Services;
 using Services.Abstraction.Contracts;
 using Services.Implementations;
+using Services.Implementations.AppointmentModule;
 using Services.Implementations.DoctorModule;
 using Services.Implementations.PatientModule;
 
@@ -20,7 +21,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IEmergencyContactService, EmergencyContactService>();
             services.AddScoped<IDoctorService, DoctorService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
-
+            services.AddScoped<IAppointmentService, AppointmentService>();
 
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
@@ -40,6 +41,9 @@ namespace Hospital_Grad.API.Extensions
             ); 
             services.AddScoped<Func<IDepartmentService>>(provider =>
                 () => provider.GetRequiredService<IDepartmentService>()
+            );
+            services.AddScoped<Func<IAppointmentService>>(provider =>
+                () => provider.GetRequiredService<IAppointmentService>()
             );
             return services;
         }

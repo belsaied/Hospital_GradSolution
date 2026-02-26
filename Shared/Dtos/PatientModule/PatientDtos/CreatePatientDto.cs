@@ -1,6 +1,5 @@
-﻿using Domain.Models.Enums;
+﻿using Domain.Models.Enums.PatientEnums;
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 
 namespace Shared.Dtos.PatientModule.PatientDtos
 {

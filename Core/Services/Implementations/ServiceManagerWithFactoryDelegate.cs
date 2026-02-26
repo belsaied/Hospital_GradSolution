@@ -10,8 +10,9 @@ namespace Services.Implementations
         Func<IMedicalHistoryService> _medicalHistoryService,
         //Doctor Module
         Func<IDoctorService> _doctorService,
-        Func<IDepartmentService> _departmentService
-        
+        Func<IDepartmentService> _departmentService,
+        Func<IAppointmentService> _appointmentService
+
         ) : IServiceManager
     {
         //Patient Module
@@ -27,5 +28,7 @@ namespace Services.Implementations
         public IDoctorService DoctorService => _doctorService.Invoke();
 
         public IDepartmentService DepartmentService => _departmentService.Invoke();
+
+        public IAppointmentService AppointmentService => _appointmentService.Invoke();
     }
 }
