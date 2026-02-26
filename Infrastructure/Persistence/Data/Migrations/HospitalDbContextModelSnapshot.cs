@@ -42,8 +42,8 @@ namespace Persistence.Data.Migrations
 
                     b.Property<string>("ConfirmationNumber")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");

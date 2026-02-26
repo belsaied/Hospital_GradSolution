@@ -4,7 +4,7 @@ using Services.Abstraction.Contracts;
 
 namespace Presentation.Hubs
 {
-    public class AppointmentNotifier (IHubContext<AppointmentHub> _hubContext , ILogger _logger): IAppointmentNotifier
+    public class AppointmentNotifier (IHubContext<AppointmentHub> _hubContext , ILogger<AppointmentNotifier> _logger): IAppointmentNotifier
     {
         
         public async Task NotifyDoctorAsync(int doctorId, string eventName, object payload)
