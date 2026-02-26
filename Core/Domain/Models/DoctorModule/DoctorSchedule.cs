@@ -1,10 +1,9 @@
-﻿using Domain.Models.Enums.DoctorEnums;
-namespace Domain.Models.DoctorModule
+﻿namespace Domain.Models.DoctorModule
 {
     public class DoctorSchedule :BaseEntity<int>
     {
         public int DoctorId { get; set; }
-        public DayOfWeeks DayOfWeek { get; set; }
+        public DayOfWeek DayOfWeek { get; set; }
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
         public int SlotDurationMinutes { get; set; } = 30;

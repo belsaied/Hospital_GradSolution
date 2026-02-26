@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using Domain.Models.Enums.DoctorEnums;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Shared.Dtos.DoctorModule.DoctorDtos
 {
     public record CreateScheduleDto
     {
         [Required]
-        public DayOfWeeks DayOfWeek { get; init; }
-
+        public DayOfWeek DayOfWeek { get; init; }
         [Required]
         public TimeOnly StartTime { get; init; }
 

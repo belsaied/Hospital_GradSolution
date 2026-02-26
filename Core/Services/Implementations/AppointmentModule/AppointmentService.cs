@@ -13,11 +13,13 @@ using Services.Specifications.DoctorModule;
 using Shared;
 using Shared.Dtos.AppointmentModule;
 using Shared.Parameters;
-using DomainDayOfWeek = Domain.Models.Enums.DoctorEnums.DayOfWeek;
 
 namespace Services.Implementations.AppointmentModule
 {
-    public class AppointmentService (IUnitOfWork _unitOfWork,IMapper _mapper , IHubContext<AppointmentHub> _hubContext) : IAppointmentService
+    public class AppointmentService(
+        IUnitOfWork _unitOfWork,
+        IMapper _mapper,
+        IAppointmentNotifier _notifier) : IAppointmentService
     {
         public async Task<AppointmentResultDto> BookAppointmentAsync(CreateAppointmentDto dto)
         {
@@ -25,7 +27,7 @@ namespace Services.Implementations.AppointmentModule
             var patientRepo = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepo.GetByIdAsync(dto.PatientId);
             if (patient is null) throw new PatientNotFoundException(dto.PatientId);
-            if (patient.Status != Domain.Models.Enums.PatientStatus.Active)
+            if (patient.Status != PatientStatus.Active)
                 throw new BusinessRuleException("Only Active patients can book appointments.");
 
             // 2. Validate doctor exists and is Active
@@ -40,8 +42,7 @@ namespace Services.Implementations.AppointmentModule
                 throw new ValidationException("Appointment date must be today or in the future.");
 
             // 4. StartTime must fall within a DoctorSchedule slot for that DayOfWeek
-            var systemDay = dto.AppointmentDate.DayOfWeek;
-            var customDay = (DomainDayOfWeek)((int)systemDay == 0 ? 7 : (int)systemDay);
+            var customDay = dto.AppointmentDate.DayOfWeek;
 
             var matchingSchedule = doctor.AvailabilitySchedules
                 .FirstOrDefault(s => s.DayOfWeek == customDay &&
@@ -85,19 +86,17 @@ namespace Services.Implementations.AppointmentModule
             await aptRepo.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
 
-            // 9. Broadcast to doctor group — doctor's dashboard sees new booking instantly
-            await _hubContext.Clients
-                .Group($"doctor-{dto.DoctorId}")
-                .SendAsync("NewAppointmentBooked", new
-                {
-                    appointmentId = appointment.Id,
-                    confirmationNumber = appointment.ConfirmationNumber,
-                    patientName = $"{patient.FirstName} {patient.LastName}",
-                    date = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
-                    startTime = appointment.StartTime.ToString("HH:mm"),
-                    endTime = appointment.EndTime.ToString("HH:mm"),
-                    type = appointment.Type.ToString()
-                });
+            // 9. Notify doctor group — doctor's dashboard sees new booking instantly
+            await _notifier.NotifyDoctorAsync(dto.DoctorId, "NewAppointmentBooked", new
+            {
+                appointmentId = appointment.Id,
+                confirmationNumber = appointment.ConfirmationNumber,
+                patientName = $"{patient.FirstName} {patient.LastName}",
+                date = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
+                startTime = appointment.StartTime.ToString("HH:mm"),
+                endTime = appointment.EndTime.ToString("HH:mm"),
+                type = appointment.Type.ToString()
+            });
 
             // 10. Reload with navigation props for mapping
             var saved = await aptRepo.GetByIdAsync(new AppointmentWithDetailsSpecification(appointment.Id));
@@ -125,17 +124,15 @@ namespace Services.Implementations.AppointmentModule
             aptRepo.Update(apt);
             await _unitOfWork.SaveChangesAsync();
 
-            // Broadcast to patient — they are notified their booking is confirmed
-            await _hubContext.Clients
-                .Group($"patient-{apt.PatientId}")
-                .SendAsync("AppointmentConfirmed", new
-                {
-                    appointmentId = apt.Id,
-                    confirmationNumber = apt.ConfirmationNumber,
-                    doctorName = $"{apt.Doctor.FirstName} {apt.Doctor.LastName}",
-                    date = apt.AppointmentDate.ToString("yyyy-MM-dd"),
-                    startTime = apt.StartTime.ToString("HH:mm")
-                });
+            // Notify patient — they are notified their booking is confirmed
+            await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentConfirmed", new
+            {
+                appointmentId = apt.Id,
+                confirmationNumber = apt.ConfirmationNumber,
+                doctorName = $"{apt.Doctor.FirstName} {apt.Doctor.LastName}",
+                date = apt.AppointmentDate.ToString("yyyy-MM-dd"),
+                startTime = apt.StartTime.ToString("HH:mm")
+            });
 
             var updated = await aptRepo.GetByIdAsync(new AppointmentWithDetailsSpecification(id));
             return _mapper.Map<AppointmentResultDto>(updated!);
@@ -155,15 +152,13 @@ namespace Services.Implementations.AppointmentModule
             aptRepo.Update(apt);
             await _unitOfWork.SaveChangesAsync();
 
-            // Broadcast to patient — they know their visit is marked done
-            await _hubContext.Clients
-                .Group($"patient-{apt.PatientId}")
-                .SendAsync("AppointmentCompleted", new
-                {
-                    appointmentId = apt.Id,
-                    confirmationNumber = apt.ConfirmationNumber,
-                    notes = apt.Notes
-                });
+            // Notify patient — they know their visit is marked done
+            await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentCompleted", new
+            {
+                appointmentId = apt.Id,
+                confirmationNumber = apt.ConfirmationNumber,
+                notes = apt.Notes
+            });
 
             var updated = await aptRepo.GetByIdAsync(new AppointmentWithDetailsSpecification(id));
             return _mapper.Map<AppointmentResultDto>(updated!);
@@ -189,7 +184,7 @@ namespace Services.Implementations.AppointmentModule
             aptRepo.Update(apt);
             await _unitOfWork.SaveChangesAsync();
 
-            // Broadcast to BOTH doctor and patient
+            // Notify BOTH doctor and patient
             var payload = new
             {
                 appointmentId = apt.Id,
@@ -199,13 +194,8 @@ namespace Services.Implementations.AppointmentModule
                 startTime = apt.StartTime.ToString("HH:mm")
             };
 
-            await _hubContext.Clients
-                .Group($"doctor-{apt.DoctorId}")
-                .SendAsync("AppointmentCancelled", payload);
-
-            await _hubContext.Clients
-                .Group($"patient-{apt.PatientId}")
-                .SendAsync("AppointmentCancelled", payload);
+            await _notifier.NotifyDoctorAsync(apt.DoctorId, "AppointmentCancelled", payload);
+            await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentCancelled", payload);
 
             return true;
         }
@@ -243,8 +233,7 @@ namespace Services.Implementations.AppointmentModule
             var doctor = await doctorRepo.GetByIdAsync(new DoctorWithDetailsSpecification(doctorId));
             if (doctor is null) throw new DoctorNotFoundException(doctorId);
 
-            var systemDay = date.DayOfWeek;
-            var customDay = (DomainDayOfWeek)((int)systemDay == 0 ? 7 : (int)systemDay);
+            var customDay = date.DayOfWeek;
 
             var schedule = doctor.AvailabilitySchedules
                 .FirstOrDefault(s => s.DayOfWeek == customDay && s.IsAvailable);

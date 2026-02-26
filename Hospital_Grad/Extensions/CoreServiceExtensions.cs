@@ -1,4 +1,5 @@
-﻿using Services;
+﻿using Presentation.Hubs;
+using Services;
 using Services.Abstraction.Contracts;
 using Services.Implementations;
 using Services.Implementations.AppointmentModule;
@@ -22,7 +23,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IDoctorService, DoctorService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
             services.AddScoped<IAppointmentService, AppointmentService>();
-
+            services.AddScoped<IAppointmentNotifier, AppointmentNotifier>();
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
                 () => provider.GetRequiredService<IPatientService>()
