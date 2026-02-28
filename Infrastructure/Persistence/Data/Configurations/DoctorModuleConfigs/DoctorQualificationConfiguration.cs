@@ -1,9 +1,6 @@
 ﻿using Domain.Models.DoctorModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Persistence.Data.Configurations.DoctorModuleConfigs
 {

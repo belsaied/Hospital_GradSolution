@@ -16,7 +16,14 @@
         #endregion
 
         #region Appointment
-        public IAppointmentService AppointmentService { get; } 
+        public IAppointmentService AppointmentService { get; }
+        #endregion
+
+        #region Medical Records
+        public IMedicalRecordService MedicalRecordService { get; }
+        public IVitalSignService VitalSignService { get; }
+        public IPrescriptionService PrescriptionService { get; }
+        public ILabOrderService LabOrderService { get; }
         #endregion
 
     }

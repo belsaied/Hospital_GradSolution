@@ -4,6 +4,7 @@ using Services.Abstraction.Contracts;
 using Services.Implementations;
 using Services.Implementations.AppointmentModule;
 using Services.Implementations.DoctorModule;
+using Services.Implementations.MedicalRecordModule;
 using Services.Implementations.PatientModule;
 
 namespace Hospital_Grad.API.Extensions
@@ -24,6 +25,10 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IDepartmentService, DepartmentService>();
             services.AddScoped<IAppointmentService, AppointmentService>();
             services.AddScoped<IAppointmentNotifier, AppointmentNotifier>();
+            services.AddScoped<IMedicalRecordService, MedicalRecordService>();
+            services.AddScoped<IVitalSignService, VitalSignService>();
+            services.AddScoped<IPrescriptionService, PrescriptionService>();
+            services.AddScoped<ILabOrderService, LabOrderService>();
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
                 () => provider.GetRequiredService<IPatientService>()
@@ -45,6 +50,18 @@ namespace Hospital_Grad.API.Extensions
             );
             services.AddScoped<Func<IAppointmentService>>(provider =>
                 () => provider.GetRequiredService<IAppointmentService>()
+            );
+            services.AddScoped<Func<IMedicalRecordService>>(provider => 
+            () => provider.GetRequiredService<IMedicalRecordService>()
+            );
+            services.AddScoped<Func<IVitalSignService>>(provider => 
+            () => provider.GetRequiredService<IVitalSignService>()
+            );
+            services.AddScoped<Func<IPrescriptionService>>(provider =>
+            () => provider.GetRequiredService<IPrescriptionService>()
+            );
+            services.AddScoped<Func<ILabOrderService>>(provider =>
+            () => provider.GetRequiredService<ILabOrderService>()
             );
             return services;
         }

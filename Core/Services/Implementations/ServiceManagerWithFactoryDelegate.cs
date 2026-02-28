@@ -11,8 +11,12 @@ namespace Services.Implementations
         //Doctor Module
         Func<IDoctorService> _doctorService,
         Func<IDepartmentService> _departmentService,
-        Func<IAppointmentService> _appointmentService
-
+        Func<IAppointmentService> _appointmentService,
+                // Medical Records Module
+        Func<IMedicalRecordService> _medicalRecordService,
+        Func<IVitalSignService> _vitalSignService,
+        Func<IPrescriptionService> _prescriptionService,
+        Func<ILabOrderService> _labOrderService
         ) : IServiceManager
     {
         //Patient Module
@@ -30,5 +34,11 @@ namespace Services.Implementations
         public IDepartmentService DepartmentService => _departmentService.Invoke();
 
         public IAppointmentService AppointmentService => _appointmentService.Invoke();
+
+        // Medical Records Module
+        public IMedicalRecordService MedicalRecordService => _medicalRecordService.Invoke();
+        public IVitalSignService VitalSignService => _vitalSignService.Invoke();
+        public IPrescriptionService PrescriptionService => _prescriptionService.Invoke();
+        public ILabOrderService LabOrderService => _labOrderService.Invoke();
     }
 }

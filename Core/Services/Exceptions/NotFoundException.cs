@@ -83,4 +83,26 @@
     }
     #endregion
 
+    #region Medical Record Module
+
+    public sealed class MedicalRecordNotFoundException : NotFoundException
+    {
+        public MedicalRecordNotFoundException(int id)
+            : base("MedicalRecord", id) { }
+    }
+
+    public sealed class LabOrderNotFoundException : NotFoundException
+    {
+        public LabOrderNotFoundException(int id)
+            : base("LabOrder", id) { }
+    }
+
+    public sealed class PrescriptionNotFoundException : NotFoundException
+    {
+        public PrescriptionNotFoundException(int id)
+            : base("Prescription", id) { }
+    }
+
+    #endregion
+
 }
