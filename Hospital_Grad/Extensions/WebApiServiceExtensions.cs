@@ -28,7 +28,7 @@ namespace Hospital_Grad.API.Extensions
             {
                 options.AddPolicy("DevPolicy", policy =>
                 {
-                    policy.WithOrigins()
+                    policy.WithOrigins("http://localhost:3000")  // replace with front actual url (in appsettings and then name here )
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials();         // Required for SignalR WebSocket upgrade
