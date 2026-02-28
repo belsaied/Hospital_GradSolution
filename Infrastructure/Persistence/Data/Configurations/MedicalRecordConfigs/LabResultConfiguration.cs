@@ -1,11 +1,8 @@
 ﻿using Domain.Models.MedicalRecordModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Persistence.Data.Configurations
+namespace Persistence.Data.Configurations.MedicalRecordConfigs
 {
     public class LabResultConfiguration : IEntityTypeConfiguration<LabResult>
     {
@@ -44,16 +41,14 @@ namespace Persistence.Data.Configurations
 
 
             #region RelationShips
-            
+
             // One-to-One: LabResult ←→ LabOrder
             builder.HasOne(x => x.LabOrder)
                 .WithOne(o => o.Result)
                 .HasForeignKey<LabResult>(x => x.LabOrderId)
                 .OnDelete(DeleteBehavior.Cascade); // لو الـ order اتحذف، الـ result يتحذف معاه
-           
+
             #endregion
-
-
         }
     }
 }

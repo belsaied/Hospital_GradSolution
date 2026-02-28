@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Persistence.Data.Configurations
+namespace Persistence.Data.Configurations.PatientModuleConfigs
 {
     public class PatientConfiguration : IEntityTypeConfiguration<Patient>
     {

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Persistence.Data.Configurations
+namespace Persistence.Data.Configurations.DoctorModuleConfigs
 {
     public class DoctorQualificationConfiguration : IEntityTypeConfiguration<DoctorQualification>
     {

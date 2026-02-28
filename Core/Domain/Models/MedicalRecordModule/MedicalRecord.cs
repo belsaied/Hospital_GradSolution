@@ -1,9 +1,6 @@
 ﻿using Domain.Models.AppointmentModule;
 using Domain.Models.DoctorModule;
 using Domain.Models.PatientModule;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Domain.Models.MedicalRecordModule
 {
@@ -15,9 +12,9 @@ namespace Domain.Models.MedicalRecordModule
         public int? AppointmentId { get; set; }
 
         //Clinical Data
-        public DateTime VisiteDate { get; set; }
+        public DateTime VisitDate { get; set; }
         public string ChiefComplaint { get; set; } = string.Empty;
-        public string Diagnsis { get; set; }   =string.Empty;
+        public string Diagnosis { get; set; }   =string.Empty;
         public string? IcdCode { get; set; }
         public string? ClinicalNotes { get; set; }
         public string? TreatmentPlan { get; set; }

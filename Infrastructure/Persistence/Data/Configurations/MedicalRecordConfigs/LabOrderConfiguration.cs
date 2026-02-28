@@ -1,11 +1,8 @@
 ﻿using Domain.Models.MedicalRecordModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Persistence.Data.Configurations
+namespace Persistence.Data.Configurations.MedicalRecordConfigs
 {
     public class LabOrderConfiguration : IEntityTypeConfiguration<LabOrder>
     {
@@ -52,9 +49,9 @@ namespace Persistence.Data.Configurations
                 .HasForeignKey(x => x.MedicalRecordId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(x=>x.Patient)
+            builder.HasOne(x => x.Patient)
                 .WithMany()
-                .HasForeignKey(x=>x.PatientId)
+                .HasForeignKey(x => x.PatientId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(x => x.Doctor)
@@ -64,8 +61,6 @@ namespace Persistence.Data.Configurations
 
 
             #endregion
-
-
         }
     }
 }

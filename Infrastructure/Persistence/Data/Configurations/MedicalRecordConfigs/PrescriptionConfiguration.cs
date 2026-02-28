@@ -1,11 +1,8 @@
 ﻿using Domain.Models.MedicalRecordModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Persistence.Data.Configurations
+namespace Persistence.Data.Configurations.MedicalRecordConfigs
 {
     public class PrescriptionConfiguration : IEntityTypeConfiguration<Prescription>
     {
@@ -34,7 +31,7 @@ namespace Persistence.Data.Configurations
                 .HasConversion<string>()
                 .HasMaxLength(20)
                 .IsRequired();
-           
+
             builder.Property(x => x.PrescribedAt)
                 .HasColumnType("datetime2")
                 .IsRequired();
@@ -73,7 +70,6 @@ namespace Persistence.Data.Configurations
 
 
             #endregion
-
         }
     }
 }

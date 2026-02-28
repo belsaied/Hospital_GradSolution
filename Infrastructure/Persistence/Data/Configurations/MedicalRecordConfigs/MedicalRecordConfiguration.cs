@@ -1,11 +1,8 @@
 ﻿using Domain.Models.MedicalRecordModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Persistence.Data.Configurations
+namespace Persistence.Data.Configurations.MedicalRecordConfigs
 {
     public class MedicalRecordConfiguration : IEntityTypeConfiguration<MedicalRecord>
     {
@@ -19,7 +16,7 @@ namespace Persistence.Data.Configurations
                 .HasMaxLength(500)
                 .IsRequired();
 
-            builder.Property(x => x.Diagnsis)
+            builder.Property(x => x.Diagnosis)
                 .HasMaxLength(1000)
                 .IsRequired();
 
@@ -32,8 +29,8 @@ namespace Persistence.Data.Configurations
             builder.Property(x => x.TreatmentPlan)
                 .HasMaxLength(2000);
 
-            builder.Property(x => x.VisiteDate)
-                .HasColumnType("datetiem2")
+            builder.Property(x => x.VisitDate)
+                .HasColumnType("datetime2")
                 .IsRequired();
 
             builder.Property(x => x.RecordedAt)
@@ -57,7 +54,7 @@ namespace Persistence.Data.Configurations
             builder.HasIndex(x => x.DoctorId)
                 .HasDatabaseName("IX_MedicalRecords_DoctorId");
 
-            builder.HasIndex(x => x.Appointment)
+            builder.HasIndex(x => x.AppointmentId)
                 .HasDatabaseName("IX_MedicalRecords_AppointmentId");
 
             #region RelationShips
@@ -81,8 +78,6 @@ namespace Persistence.Data.Configurations
                 .IsRequired(false);
 
             #endregion
-
-
         }
     }
 }
