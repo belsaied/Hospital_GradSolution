@@ -1,6 +1,7 @@
 ﻿using Domain.Contracts;
 using Domain.Models.AppointmentModule;
 using Domain.Models.DoctorModule;
+using Domain.Models.MedicalRecordModule;
 using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
@@ -122,6 +123,50 @@ public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
             }
             #endregion
             await _dbContext.SaveChangesAsync();
+
+            #region MedicalRecord Module
+            if (!await _dbContext.MedicalRecords.AnyAsync())
+            {
+                var recordsPath = Path.Combine(basePath, "medical-records.json");
+                var records = await LoadJsonAsync<MedicalRecord>(recordsPath, jsonOptions);
+               
+                if (records?.Any() == true)
+                {
+                    await _dbContext.MedicalRecords.AddRangeAsync(records);
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            if (!await _dbContext.VitalSigns.AnyAsync())
+            {
+                var vitalsPath = Path.Combine(basePath, "vital-signs.json");
+                var vitals = await LoadJsonAsync<VitalSign>(vitalsPath, jsonOptions);
+
+                if (vitals?.Any() == true)
+                    await _dbContext.VitalSigns.AddRangeAsync(vitals);
+            }
+
+            if(!await _dbContext.Prescriptions.AnyAsync())
+            {
+                var prescPath = Path.Combine(basePath, "prescriptions.json");
+                var prescriptions = await LoadJsonAsync<Prescription>(prescPath, jsonOptions);
+
+                if (prescriptions?.Any() == true)
+                    await _dbContext.Prescriptions.AddRangeAsync(prescriptions);
+            }
+
+            if (!await _dbContext.LabOrders.AnyAsync()) 
+            {
+                var labPath = Path.Combine(basePath, "lab-orders.json");
+                var labOrders = await LoadJsonAsync<LabOrder>(labPath, jsonOptions);
+
+                if (labOrders?.Any() == true)
+                    await _dbContext.LabOrders.AddRangeAsync(labOrders);
+            }
+
+            #endregion
+            await _dbContext.SaveChangesAsync();
+
         }
         catch (Exception ex)
         {

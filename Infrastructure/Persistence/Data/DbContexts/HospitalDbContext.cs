@@ -1,5 +1,6 @@
 ﻿using Domain.Models.AppointmentModule;
 using Domain.Models.DoctorModule;
+using Domain.Models.MedicalRecordModule;
 using Domain.Models.PatientModule;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,14 @@ namespace Persistence.Data.DbContexts
 
         #region AppointmentModule
         public DbSet<Appointment> Appointments { get; set; }
+        #endregion
+
+        #region Medical Record Medule
+        public DbSet<MedicalRecord> MedicalRecords { get; set; }
+        public DbSet<VitalSign> VitalSigns { get; set; }
+        public DbSet<Prescription> Prescriptions { get; set; }
+        public DbSet<LabOrder> LabOrders { get; set; }
+        public DbSet<LabResult> LabResults { get; set; }    
         #endregion
     }
 }
