@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
+using Shared;
 using Shared.Dtos.MedicalRecordsDto;
+using Shared.Parameters;
 
 namespace Presentation.Controllers
 {
@@ -41,21 +43,23 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.MedicalRecordService
                     .UpdateMedicalRecordAsync(id, dto, requestingDoctorId));
 
-        // GET /api/medical-records/patient/{patientId}
+        // GET /api/medical-records/patient/{patientId}?pageIndex=1&pageSize=10
         [HttpGet("patient/{patientId:int}")]
         [ProducesResponseType(typeof(IEnumerable<MedicalRecordResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<MedicalRecordResultDto>>> GetPatientMedicalRecords(
-            int patientId)
-            => Ok(await _serviceManager.MedicalRecordService.GetPatientMedicalRecordsAsync(patientId));
+        public async Task<ActionResult<PaginatedResult<MedicalRecordResultDto>>> GetPatientMedicalRecords(
+            int patientId , [FromQuery] MedicalRecordSpecificationParameters parameters)
 
-        // GET /api/medical-records/doctor/{doctorId}
+            => Ok(await _serviceManager.MedicalRecordService.GetPatientMedicalRecordsAsync(patientId , parameters));
+
+        // GET /api/medical-records/doctor/{doctorId} ?pageIndex=1&pageSize=10
         [HttpGet("doctor/{doctorId:int}")]
         [ProducesResponseType(typeof(IEnumerable<MedicalRecordResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IEnumerable<MedicalRecordResultDto>>> GetDoctorMedicalRecords(
-            int doctorId)
-            => Ok(await _serviceManager.MedicalRecordService.GetDoctorMedicalRecordsAsync(doctorId));
+        public async Task<ActionResult<PaginatedResult<MedicalRecordResultDto>>> GetDoctorMedicalRecords(
+            int doctorId ,[FromQuery] MedicalRecordSpecificationParameters parameters)
+
+            => Ok(await _serviceManager.MedicalRecordService.GetDoctorMedicalRecordsAsync(doctorId , parameters));
 
         // POST /api/medical-records/{id}/vitals
         [HttpPost("{id:int}/vitals")]

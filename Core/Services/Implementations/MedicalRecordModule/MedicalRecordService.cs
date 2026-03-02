@@ -8,7 +8,9 @@ using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Services.Specifications.MedicalRecordModule;
+using Shared;
 using Shared.Dtos.MedicalRecordsDto;
+using Shared.Parameters;
 
 namespace Services.Implementations.MedicalRecordModule
 {
@@ -92,26 +94,35 @@ namespace Services.Implementations.MedicalRecordModule
             return _mapper.Map<MedicalRecordResultDto>(updated!);
         }
 
-        public async Task<IEnumerable<MedicalRecordResultDto>> GetPatientMedicalRecordsAsync(int patientId)
+        public async Task<PaginatedResult<MedicalRecordResultDto>> GetPatientMedicalRecordsAsync(int patientId, MedicalRecordSpecificationParameters p)
         {
             var patientRepo = _unitOfWork.GetRepository<Patient, int>();
             if (await patientRepo.GetByIdAsync(patientId) is null)
                 throw new PatientNotFoundException(patientId);
 
             var recordRepo = _unitOfWork.GetRepository<MedicalRecord, int>();
-            var records = await recordRepo.GetAllAsync(new PatientMedicalRecordsSpecification(patientId));
-            return _mapper.Map<IEnumerable<MedicalRecordResultDto>>(records);
+            var records = await recordRepo.GetAllAsync(new PatientMedicalRecordsSpecification(patientId,p));
+            var count = await recordRepo.CountAsync(new PatientMedicalRecordsCountSpecification(patientId));
+
+            return new PaginatedResult<MedicalRecordResultDto>(
+                 p.PageIndex, p.PageSize, count,
+                _mapper.Map<IEnumerable<MedicalRecordResultDto>>(records));
         }
 
-        public async Task<IEnumerable<MedicalRecordResultDto>> GetDoctorMedicalRecordsAsync(int doctorId)
+        public async Task<PaginatedResult<MedicalRecordResultDto>> GetDoctorMedicalRecordsAsync(int doctorId, MedicalRecordSpecificationParameters p)
         {
             var doctorRepo = _unitOfWork.GetRepository<Doctor, int>();
             if (await doctorRepo.GetByIdAsync(doctorId) is null)
                 throw new DoctorNotFoundException(doctorId);
 
             var recordRepo = _unitOfWork.GetRepository<MedicalRecord, int>();
-            var records = await recordRepo.GetAllAsync(new DoctorMedicalRecordsSpecification(doctorId));
-            return _mapper.Map<IEnumerable<MedicalRecordResultDto>>(records);
+            var records = await recordRepo.GetAllAsync(new DoctorMedicalRecordsSpecification(doctorId, p));
+            var count = await recordRepo.CountAsync(new DoctorMedicalRecordsCountSpecification(doctorId));
+
+            return new PaginatedResult<MedicalRecordResultDto>(
+                p.PageIndex, p.PageSize, count,
+                _mapper.Map<IEnumerable<MedicalRecordResultDto>>(records));
         }
+
     }
 }
