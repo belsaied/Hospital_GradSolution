@@ -105,4 +105,21 @@
 
     #endregion
 
+    #region WardBedModule
+    public class WardNotFoundException(int id)
+        : NotFoundException($"Ward with ID {id} was not found.");
+
+    public class RoomNotFoundException(int id)
+        : NotFoundException($"Room with ID {id} was not found.");
+
+    public class BedNotFoundException(int id)
+        : NotFoundException($"Bed with ID {id} was not found.");
+
+    public class AdmissionNotFoundException(int id)
+        : NotFoundException($"Admission with ID {id} was not found.");
+
+    public class DuplicateWardNameException(string name)
+        : ConflictException($"A ward with the name '{name}' already exists.");
+    #endregion
+
 }

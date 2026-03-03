@@ -24,7 +24,9 @@ namespace Persistence
             if (specifications.IncludeExpressions.Any())
                 query = specifications.IncludeExpressions
                     .Aggregate(query, (current, include) => current.Include(include));
-
+            if (specifications.IncludeStrings.Any())
+                query = specifications.IncludeStrings
+                    .Aggregate(query, (current, include) => current.Include(include));
             if (specifications.IsPaginated)
                 query = query.Skip(specifications.Skip).Take(specifications.Take);
 

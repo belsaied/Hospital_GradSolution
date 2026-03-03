@@ -1,4 +1,6 @@
-﻿namespace Services.Abstraction.Contracts
+﻿using Services.Abstraction.Contracts.WardBedService;
+
+namespace Services.Abstraction.Contracts
 {
     public interface IServiceManager
     {
@@ -24,6 +26,13 @@
         public IVitalSignService VitalSignService { get; }
         public IPrescriptionService PrescriptionService { get; }
         public ILabOrderService LabOrderService { get; }
+        #endregion
+
+        #region WardBed
+        public IWardService WardService { get; }
+        public IBedService BedService { get; }
+        public IAdmissionService AdmissionService { get; }
+
         #endregion
 
     }

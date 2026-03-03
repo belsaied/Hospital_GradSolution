@@ -1,4 +1,5 @@
 ﻿using Services.Abstraction.Contracts;
+using Services.Abstraction.Contracts.WardBedService;
 
 namespace Services.Implementations
 {
@@ -16,7 +17,11 @@ namespace Services.Implementations
         Func<IMedicalRecordService> _medicalRecordService,
         Func<IVitalSignService> _vitalSignService,
         Func<IPrescriptionService> _prescriptionService,
-        Func<ILabOrderService> _labOrderService
+        Func<ILabOrderService> _labOrderService,
+        //WardBed Module
+        Func<IWardService>_wardService,
+        Func<IBedService>_bedService,
+        Func<IAdmissionService> _admissionService
         ) : IServiceManager
     {
         //Patient Module
@@ -40,5 +45,11 @@ namespace Services.Implementations
         public IVitalSignService VitalSignService => _vitalSignService.Invoke();
         public IPrescriptionService PrescriptionService => _prescriptionService.Invoke();
         public ILabOrderService LabOrderService => _labOrderService.Invoke();
+
+        public IWardService WardService => _wardService.Invoke();
+
+        public IBedService BedService => _bedService.Invoke();
+
+        public IAdmissionService AdmissionService => _admissionService.Invoke();
     }
 }

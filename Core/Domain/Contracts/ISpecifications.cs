@@ -7,6 +7,7 @@ namespace Domain.Contracts
     {
         Expression<Func<TEntity, bool>>? Criteria { get; }
         List<Expression<Func<TEntity, object>>> IncludeExpressions { get; }
+        List<string> IncludeStrings { get; } 
         Expression<Func<TEntity, object>>? OrderBy { get; }
         Expression<Func<TEntity, object>>? OrderByDescending { get; }
         int Skip { get; }
