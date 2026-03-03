@@ -16,7 +16,7 @@ namespace Domain.Models.WardBedModule
         
         #region Navigation Property
         public Room Room { get; set; } = null!;
-        //public  ICollection<Admission> Admissions { get; set; } = new List<Admission>();
+        public  ICollection<Admission> Admissions { get; set; } = new List<Admission>();
         #endregion
     }
 }

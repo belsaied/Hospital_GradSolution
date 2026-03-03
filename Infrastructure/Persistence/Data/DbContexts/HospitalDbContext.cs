@@ -2,6 +2,7 @@
 using Domain.Models.DoctorModule;
 using Domain.Models.MedicalRecordModule;
 using Domain.Models.PatientModule;
+using Domain.Models.WardBedModule;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Data.DbContexts
@@ -41,7 +42,15 @@ namespace Persistence.Data.DbContexts
         public DbSet<VitalSign> VitalSigns { get; set; }
         public DbSet<Prescription> Prescriptions { get; set; }
         public DbSet<LabOrder> LabOrders { get; set; }
-        public DbSet<LabResult> LabResults { get; set; }    
+        public DbSet<LabResult> LabResults { get; set; }
+        #endregion
+
+        #region WardBed Module
+        public DbSet<Ward> Wards { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<Bed> Beds { get; set; }
+        public DbSet<Admission> Admissions { get; set; }
+        public DbSet<BedTransfer> BedTransfers { get; set; }
         #endregion
     }
 }

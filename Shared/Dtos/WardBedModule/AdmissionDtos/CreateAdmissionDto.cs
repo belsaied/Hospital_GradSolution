@@ -23,5 +23,8 @@ namespace Shared.Dtos.WardBedModule.AdmissionDtos
 
         [Required, MaxLength(500)]
         public string AdmissionReason { get; init; } = string.Empty;
+
+        [Required, MaxLength(100)]
+        public string AdmittedBy { get; init; }=string.Empty;
     }
 }

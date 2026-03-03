@@ -3,6 +3,7 @@ using Domain.Models.AppointmentModule;
 using Domain.Models.DoctorModule;
 using Domain.Models.MedicalRecordModule;
 using Domain.Models.PatientModule;
+using Domain.Models.WardBedModule;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Data.DbContexts;
 using System.Text.Json;
@@ -167,6 +168,49 @@ public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
             #endregion
             await _dbContext.SaveChangesAsync();
 
+            #region WardBed Module
+            if (!await _dbContext.Wards.AnyAsync())
+            {
+                var wardsPath = Path.Combine(basePath, "wards.json");
+                var wards = await LoadJsonAsync<Ward>(wardsPath, jsonOptions);
+                if (wards?.Any() == true)
+                {
+                    await _dbContext.Wards.AddRangeAsync(wards);
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            if (!await _dbContext.Rooms.AnyAsync())
+            {
+                var roomsPath = Path.Combine(basePath, "rooms.json");
+                var rooms = await LoadJsonAsync<Room>(roomsPath, jsonOptions);
+                if (rooms?.Any() == true)
+                {
+                    await _dbContext.Rooms.AddRangeAsync(rooms);
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            if (!await _dbContext.Beds.AnyAsync())
+            {
+                var bedsPath = Path.Combine(basePath, "beds.json");
+                var beds = await LoadJsonAsync<Bed>(bedsPath, jsonOptions);
+                if (beds?.Any() == true)
+                {
+                    await _dbContext.Beds.AddRangeAsync(beds);
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            if (!await _dbContext.Admissions.AnyAsync())
+            {
+                var admissionsPath = Path.Combine(basePath, "admissions.json");
+                var admissions = await LoadJsonAsync<Admission>(admissionsPath, jsonOptions);
+                if (admissions?.Any() == true)
+                    await _dbContext.Admissions.AddRangeAsync(admissions);
+            }
+            #endregion
+            await _dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
