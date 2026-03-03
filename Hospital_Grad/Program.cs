@@ -29,4 +29,5 @@ app.UseAuthorization();
 app.UseWebSockets();
 app.MapControllers();
 app.MapHub<AppointmentHub>("/hubs/appointments");
+app.MapHub<WardHub>("/hubs/ward");
 app.Run();

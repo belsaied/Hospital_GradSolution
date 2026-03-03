@@ -22,7 +22,7 @@ namespace Services.Implementations.WardBedModule
             // BR-16: Ward Name must be unique
             var all = await repo.GetAllAsync(asNoTracking: true);
             if (all.Any(w => w.Name.ToLower() == dto.Name.ToLower()))
-                throw new ConflictException($"Ward with name '{dto.Name}' already exists.");
+                throw new DuplicateWardNameException(dto.Name);
 
             var ward = _mapper.Map<Ward>(dto);
             ward.IsActive = true;
@@ -43,33 +43,39 @@ namespace Services.Implementations.WardBedModule
                 var occupied = allBeds.Count(b => b.Status == BedStatus.Occupied);
                 var available = allBeds.Count(b => b.Status == BedStatus.Available);
                 var maintenance = allBeds.Count(b => b.Status == BedStatus.Maintenance);
+                var reserved = allBeds.Count(b => b.Status == BedStatus.Reserved);
+
                 return new WardOccupancySummaryDto
                 {
                     WardId = w.Id,
                     WardName = w.Name,
                     WardType = w.WardType.ToString(),
+                    Floor = w.Floor,
+                    IsActive = w.IsActive,
                     TotalBeds = total,
                     OccupiedBeds = occupied,
                     AvailableBeds = available,
                     MaintenanceBeds = maintenance,
-                   // OccupancyPercentage = total == 0 ? 0 : Math.Round((decimal)occupied / total * 100, 2)
+                    ReservedBeds = reserved
                 };
             });
         }
 
-        public async Task<WardResultDto> GetWardByIdAsync(int id)
+        //  GetWardByIdAsync — explicit interface implementation
+        // returns WardWithDetailsResultDto (includes Rooms + Beds)
+        async Task<WardWithDetailsResultDto> IWardService.GetWardByIdAsync(int wardId)
         {
             var repo = _unitOfWork.GetRepository<Ward, int>();
-            var ward = await repo.GetByIdAsync(id);
-            if (ward is null) throw new NotFoundException("Ward", id);
-            return _mapper.Map<WardResultDto>(ward);
+            var ward = await repo.GetByIdAsync(new WardWithRoomsAndBedsSpecification(wardId));
+            if (ward is null) throw new WardNotFoundException(wardId);
+            return _mapper.Map<WardWithDetailsResultDto>(ward);
         }
 
-        public async Task<WardResultDto> UpdateWardAsync(int id, UpdateWardDto dto)
+        public async Task<WardResultDto> UpdateWardAsync(int wardId, UpdateWardDto dto)
         {
             var repo = _unitOfWork.GetRepository<Ward, int>();
-            var ward = await repo.GetByIdAsync(id);
-            if (ward is null) throw new NotFoundException("Ward", id);
+            var ward = await repo.GetByIdAsync(wardId);
+            if (ward is null) throw new WardNotFoundException(wardId);
 
             if (!string.IsNullOrEmpty(dto.Name)) ward.Name = dto.Name;
             if (dto.WardType.HasValue) ward.WardType = dto.WardType.Value;
@@ -87,37 +93,31 @@ namespace Services.Implementations.WardBedModule
         {
             var wardRepo = _unitOfWork.GetRepository<Ward, int>();
             if (await wardRepo.GetByIdAsync(wardId) is null)
-                throw new NotFoundException("Ward", wardId);
+                throw new WardNotFoundException(wardId);
 
             var room = _mapper.Map<Room>(dto);
             room.WardId = wardId;
             room.IsActive = true;
+
             var roomRepo = _unitOfWork.GetRepository<Room, int>();
             await roomRepo.AddAsync(room);
             await _unitOfWork.SaveChangesAsync();
 
-            //  بعد SaveChanges، reload الـ room بـ Id عادي مع Ward navigation
-            var spec = new RoomsByWardSpecification(wardId);
-            var rooms = await roomRepo.GetAllAsync(spec);
+            // Reload with Ward navigation
+            var rooms = await roomRepo.GetAllAsync(new RoomsByWardSpecification(wardId));
             var loaded = rooms.First(r => r.Id == room.Id);
             return _mapper.Map<RoomResultDto>(loaded);
-          
         }
 
         public async Task<IEnumerable<RoomResultDto>> GetRoomsInWardAsync(int wardId)
         {
             var wardRepo = _unitOfWork.GetRepository<Ward, int>();
             if (await wardRepo.GetByIdAsync(wardId) is null)
-                throw new NotFoundException("Ward", wardId);
+                throw new WardNotFoundException(wardId);
 
             var roomRepo = _unitOfWork.GetRepository<Room, int>();
             var rooms = await roomRepo.GetAllAsync(new RoomsByWardSpecification(wardId));
             return _mapper.Map<IEnumerable<RoomResultDto>>(rooms);
-        }
-
-        Task<WardWithDetailsResultDto> IWardService.GetWardByIdAsync(int wardId)
-        {
-            throw new NotImplementedException();
         }
     }
 
