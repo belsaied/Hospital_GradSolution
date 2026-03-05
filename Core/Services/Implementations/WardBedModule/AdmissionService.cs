@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
 using Domain.Models.DoctorModule;
+using Domain.Models.Enums.DoctorEnums;
+using Domain.Models.Enums.PatientEnums;
 using Domain.Models.Enums.WardBedEnums;
 using Domain.Models.PatientModule;
 using Domain.Models.WardBedModule;
@@ -18,15 +20,24 @@ namespace Services.Implementations.WardBedModule
     {
         public async Task<AdmissionResultDto> AdmitPatientAsync(CreateAdmissionDto dto)
         {
-            // 1. Validate patient
+            // 1. Validate patient exists
             var patientRepo = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepo.GetByIdAsync(dto.PatientId);
             if (patient is null) throw new PatientNotFoundException(dto.PatientId);
 
-            // 2. Validate doctor
+            //  BR FIX: Patient must be Active (not Inactive or Deceased)
+            if (patient.Status != PatientStatus.Active)
+                throw new BusinessRuleException(
+                    $"Cannot admit patient with status '{patient.Status}'. Only Active patients can be admitted.");
+
+            // 2. Validate doctor exists and is Active
             var doctorRepo = _unitOfWork.GetRepository<Doctor, int>();
             var doctor = await doctorRepo.GetByIdAsync(dto.AdmittingDoctorId);
             if (doctor is null) throw new DoctorNotFoundException(dto.AdmittingDoctorId);
+
+            if (doctor.Status != DoctorStatus.Active)
+                throw new BusinessRuleException(
+                    $"Cannot assign doctor with status '{doctor.Status}'. Only Active doctors can admit patients.");
 
             // 3. Validate bed exists and is Available
             var bedRepo = _unitOfWork.GetRepository<Bed, int>();
@@ -46,7 +57,12 @@ namespace Services.Implementations.WardBedModule
 
             // 5. Create admission
             var admission = _mapper.Map<Admission>(dto);
-            admission.AdmissionDate = DateTime.UtcNow;
+
+            // FIX: Use DTO AdmissionDate if provided, otherwise fallback to UtcNow
+            admission.AdmissionDate = dto.AdmissionDate == default
+                ? DateTime.UtcNow
+                : dto.AdmissionDate;
+
             admission.Status = AdmissionStatus.Active;
 
             await admissionRepo.AddAsync(admission);
@@ -57,13 +73,14 @@ namespace Services.Implementations.WardBedModule
 
             await _unitOfWork.SaveChangesAsync();
 
-            // 7. SignalR notification
-            await _notifier.NotifyDashboardAsync("PatientAdmitted", new
+            // 7. SignalR: BRD event name is "BedOccupied"
+            await _notifier.NotifyDashboardAsync("BedOccupied", new
             {
-                admissionId = admission.Id,
-                patientName = $"{patient.FirstName} {patient.LastName}",
                 bedId = dto.BedId,
-                admissionDate = admission.AdmissionDate
+                bedNumber = bed.BedNumber,
+                roomId = bed.RoomId,
+                patientId = dto.PatientId,
+                admissionId = admission.Id
             });
 
             // 8. Reload with navigation
@@ -128,13 +145,16 @@ namespace Services.Implementations.WardBedModule
 
             await _unitOfWork.SaveChangesAsync();
 
-            // Notify
-            await _notifier.NotifyDashboardAsync("PatientDischarged", new
+            // SignalR: BRD event : BedReleased
+            await _notifier.NotifyDashboardAsync("BedReleased", new
             {
-                admissionId = admission.Id,
                 bedId = admission.BedId,
-                dischargeDate = admission.ActualDischargeDate
+                bedNumber = bed?.BedNumber,
+                roomId = bed?.RoomId,
+                newStatus = BedStatus.Available.ToString()
             });
+
+            // TODO (Phase 2 Billing hook): emit discharge event to trigger invoice creation
 
             var updated = await admissionRepo.GetByIdAsync(
                 new AdmissionWithDetailsSpecification(admissionId));
@@ -150,6 +170,11 @@ namespace Services.Implementations.WardBedModule
 
             if (admission.Status != AdmissionStatus.Active)
                 throw new BusinessRuleException("Can only transfer an Active admission.");
+
+            // BR FIX: ToBedId must be different from current bed
+            if (dto.ToBedId == admission.BedId)
+                throw new BusinessRuleException(
+                    "Target bed must be different from the patient's current bed.");
 
             // Validate new bed
             var bedRepo = _unitOfWork.GetRepository<Bed, int>();
@@ -187,12 +212,12 @@ namespace Services.Implementations.WardBedModule
 
             await _unitOfWork.SaveChangesAsync();
 
-            // Notify ward
-            await _notifier.NotifyDashboardAsync("PatientTransferred", new
+            // SignalR: BRD event :BedTransferred
+            await _notifier.NotifyDashboardAsync("BedTransferred", new
             {
-                admissionId,
                 fromBedId,
                 toBedId = dto.ToBedId,
+                admissionId,
                 reason = dto.Reason
             });
 
@@ -200,6 +225,5 @@ namespace Services.Implementations.WardBedModule
                 new AdmissionWithDetailsSpecification(admissionId));
             return _mapper.Map<AdmissionResultDto>(updated!);
         }
-
     }
 }

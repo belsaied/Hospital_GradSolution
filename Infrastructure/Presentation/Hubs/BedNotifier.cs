@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Presentation.Hubs
 {
-    public class BedNotifier (IHubContext<WardHub> _hubContext) :IBedNotifier
+    public class BedNotifier(IHubContext<WardHub> _hubContext) : IBedNotifier
     {
         public async Task NotifyWardAsync(int wardId, string eventName, object payload)
         {
@@ -17,8 +17,9 @@ namespace Presentation.Hubs
 
         public async Task NotifyDashboardAsync(string eventName, object payload)
         {
+            // FIX: BRD specifies group name "bed-dashboard" not "dashboard"
             await _hubContext.Clients
-                .Group("dashboard")
+                .Group("bed-dashboard")
                 .SendAsync(eventName, payload);
         }
     }

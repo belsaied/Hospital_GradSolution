@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.WardBedModule.BedDtos;
 using System;
@@ -11,34 +12,27 @@ namespace Presentation.Controllers
     [Route("api/beds")]
     public class BedController(IServiceManager _serviceManager) : ControllerBase
     {
-        [HttpPost("{bedId:int}/beds")]
-        public async Task<IActionResult> AddBed(int bedId, [FromBody] CreateBedDto dto)
+        // GET api/beds/available
+        // GET api/beds/available?wardType=ICU&bedType=Standard
+        [HttpGet("available")]
+        [ProducesResponseType(typeof(IEnumerable<BedAvailabilityResultDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAvailableBeds(
+            [FromQuery] string? wardType = null,
+            [FromQuery] string? bedType = null)
         {
-            var result = await _serviceManager.BedService.AddBedToRoomAsync(bedId, dto);
-            return CreatedAtAction(nameof(GetBedsInRoom), new { bedId }, result);
-        }
-
-        [HttpGet("{bedId:int}/beds")]
-        public async Task<IActionResult> GetBedsInRoom(int bedId)
-        {
-            var result = await _serviceManager.BedService.GetBedsInRoomAsync(bedId);
+            var result = await _serviceManager.BedService.GetAvailableBedsAsync(wardType, bedType);
             return Ok(result);
         }
-
-        [HttpPatch("beds/{bedId:int}/status")]
+        // PUT api/beds/5/status
+        [HttpPut("{bedId:int}/status")]
+        [ProducesResponseType(typeof(BedResultDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> UpdateBedStatus(int bedId, [FromBody] UpdateBedStatusDto dto)
         {
             var result = await _serviceManager.BedService.UpdateBedStatusAsync(bedId, dto);
             return Ok(result);
         }
-
-        [HttpGet("beds/available")]
-        public async Task<IActionResult> GetAvailableBeds(
-        [FromQuery] string? wardType = null,
-        [FromQuery] string? bedType = null)
-        {
-            var result = await _serviceManager.BedService.GetAvailableBedsAsync(wardType, bedType);
-            return Ok(result);
-        }
+        
     }
 }

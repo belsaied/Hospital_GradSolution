@@ -10,8 +10,11 @@ namespace Services.Specifications.WardBedModule
         public WardWithRoomsAndBedsSpecification(int wardId) : base(w => w.Id == wardId)
         {
             AddInclude(w => w.Rooms);
-            // Deep include Beds inside Rooms is done via ThenInclude in the repository
-            AddInclude("Room.Ward");
+
+            //  FIX: Was "Room.Ward" (singular, wrong navigation name)
+            // Correct deep includes for WardWithDetailsResultDto
+            // which needs: Ward → Rooms → Beds
+            AddInclude("Rooms.Beds");
         }
 
     }

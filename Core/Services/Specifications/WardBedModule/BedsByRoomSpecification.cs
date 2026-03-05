@@ -9,7 +9,10 @@ namespace Services.Specifications.WardBedModule
     {
         public BedsByRoomSpecification(int roomId) : base(b => b.RoomId == roomId)
         {
+            //FIX: BedResultDto needs WardName → requires Room.Ward
             AddInclude(b => b.Room);
+            AddInclude("Room.Ward");
+
             AddOrderBy(b => b.BedNumber);
         }
 

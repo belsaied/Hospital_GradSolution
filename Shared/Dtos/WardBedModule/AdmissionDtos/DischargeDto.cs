@@ -7,9 +7,6 @@ namespace Shared.Dtos.WardBedModule.AdmissionDtos
 {
     public record DischargeDto
     {
-        [Required]
-        public DateTime DischargeDate { get; init; }
-
         [MaxLength(2000)]
         public string? DischargeSummary { get; init; }
     }

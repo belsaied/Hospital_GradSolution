@@ -9,13 +9,13 @@ using System.Text;
 namespace Presentation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/admissions")]
     public class AdmissionController(IServiceManager _serviceManager) : ControllerBase
-    {
-        // POST /api/admissions
+    {// POST api/admissions
         [HttpPost]
         [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<AdmissionResultDto>> AdmitPatient(
             [FromBody] CreateAdmissionDto dto)
@@ -24,20 +24,20 @@ namespace Presentation.Controllers
             return CreatedAtAction(nameof(GetAdmissionById), new { id = admission.Id }, admission);
         }
 
-        // GET /api/admissions/{id}
+        // GET api/admissions/5
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AdmissionResultDto>> GetAdmissionById(int id)
             => Ok(await _serviceManager.AdmissionService.GetAdmissionByIdAsync(id));
 
-        // GET /api/admissions/active
+        // GET api/admissions/active
         [HttpGet("active")]
         [ProducesResponseType(typeof(IEnumerable<AdmissionResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<AdmissionResultDto>>> GetActiveAdmissions()
             => Ok(await _serviceManager.AdmissionService.GetActiveAdmissionsAsync());
 
-        // GET /api/admissions/patient/{patientId}
+        // GET api/admissions/patient/3
         [HttpGet("patient/{patientId:int}")]
         [ProducesResponseType(typeof(IEnumerable<AdmissionResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -45,7 +45,7 @@ namespace Presentation.Controllers
             int patientId)
             => Ok(await _serviceManager.AdmissionService.GetPatientAdmissionHistoryAsync(patientId));
 
-        // PUT /api/admissions/{id}/discharge
+        // PUT api/admissions/5/discharge
         [HttpPut("{id:int}/discharge")]
         [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,14 +54,16 @@ namespace Presentation.Controllers
             int id, [FromBody] DischargeDto dto)
             => Ok(await _serviceManager.AdmissionService.DischargePatientAsync(id, dto));
 
-        // PUT /api/admissions/{id}/transfer
-        [HttpPut("{id:int}/transfer")]
-        [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status200OK)]
+        // POST api/admissions/5/transfer
+        [HttpPost("{id:int}/transfer")]
+        [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<AdmissionResultDto>> TransferPatient(
             int id, [FromBody] TransferBedDto dto)
-            => Ok(await _serviceManager.AdmissionService.TransferPatientAsync(id, dto));
-
+        {
+            var result = await _serviceManager.AdmissionService.TransferPatientAsync(id, dto);
+            return StatusCode(StatusCodes.Status201Created, result);
+        }
     }
 }

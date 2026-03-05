@@ -21,9 +21,15 @@ namespace Services.Implementations.WardBedModule
             if (room is null) throw new RoomNotFoundException(roomId);
 
             var bedRepo = _unitOfWork.GetRepository<Bed, int>();
+            var existingBeds = await bedRepo.GetAllAsync(new BedsByRoomSpecification(roomId));
+
+            // ✅ BR FIX: Enforce room capacity — cannot exceed Capacity
+            if (existingBeds.Count() >= room.Capacity)
+                throw new BusinessRuleException(
+                    $"Room '{room.RoomNumber}' has reached its maximum capacity of {room.Capacity} bed(s). " +
+                    $"Remove an existing bed or increase room capacity before adding a new one.");
 
             // BR: BedNumber must be unique within the room
-            var existingBeds = await bedRepo.GetAllAsync(new BedsByRoomSpecification(roomId));
             if (existingBeds.Any(b => b.BedNumber == dto.BedNumber))
                 throw new ConflictException($"Bed number '{dto.BedNumber}' already exists in this room.");
 
@@ -53,18 +59,38 @@ namespace Services.Implementations.WardBedModule
         public async Task<BedResultDto> UpdateBedStatusAsync(int bedId, UpdateBedStatusDto dto)
         {
             var bedRepo = _unitOfWork.GetRepository<Bed, int>();
-            var bed = await bedRepo.GetByIdAsync(bedId);
+            var bed = await bedRepo.GetByIdAsync(new BedsByRoomSpecification_ById(bedId));
             if (bed is null) throw new BedNotFoundException(bedId);
 
             // BR: Cannot manually set Occupied — only Admission does that
             if (dto.Status == BedStatus.Occupied)
-                throw new BusinessRuleException("Bed status cannot be manually set to Occupied. Use Admission instead.");
+                throw new BusinessRuleException(
+                    "Bed status cannot be manually set to Occupied. Use Admission instead.");
+
+            var oldStatus = bed.Status;
 
             bed.Status = dto.Status;
             bed.Notes = dto.Notes ?? bed.Notes;
 
             bedRepo.Update(bed);
             await _unitOfWork.SaveChangesAsync();
+
+            // ✅ FIX: BRD requires "BedStatusChanged" event when bed is manually set to Maintenance or Reserved
+            await _notifier.NotifyWardAsync(bed.Room.WardId, "BedStatusChanged", new
+            {
+                bedId,
+                bedNumber = bed.BedNumber,
+                oldStatus = oldStatus.ToString(),
+                newStatus = dto.Status.ToString()
+            });
+
+            await _notifier.NotifyDashboardAsync("BedStatusChanged", new
+            {
+                bedId,
+                bedNumber = bed.BedNumber,
+                oldStatus = oldStatus.ToString(),
+                newStatus = dto.Status.ToString()
+            });
 
             var beds = await bedRepo.GetAllAsync(new BedsByRoomSpecification(bed.RoomId));
             var updated = beds.First(b => b.Id == bedId);
@@ -90,6 +116,6 @@ namespace Services.Implementations.WardBedModule
                 new AvailableBedSpecification(parsedWardType, parsedBedType));
 
             return _mapper.Map<IEnumerable<BedAvailabilityResultDto>>(beds);
+
         }
-    }
 }

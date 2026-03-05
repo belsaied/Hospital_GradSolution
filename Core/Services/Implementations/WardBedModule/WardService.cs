@@ -19,7 +19,7 @@ namespace Services.Implementations.WardBedModule
         {
             var repo = _unitOfWork.GetRepository<Ward, int>();
 
-            // BR-16: Ward Name must be unique
+            // BR: Ward Name must be unique
             var all = await repo.GetAllAsync(asNoTracking: true);
             if (all.Any(w => w.Name.ToLower() == dto.Name.ToLower()))
                 throw new DuplicateWardNameException(dto.Name);
@@ -61,9 +61,9 @@ namespace Services.Implementations.WardBedModule
             });
         }
 
-        //  GetWardByIdAsync — explicit interface implementation
-        // returns WardWithDetailsResultDto (includes Rooms + Beds)
-        async Task<WardWithDetailsResultDto> IWardService.GetWardByIdAsync(int wardId)
+        //FIX: Removed explicit interface implementation (IWardService.GetWardByIdAsync)
+        // Changed to standard public method — cleaner and consistent with rest of the class
+        public async Task<WardWithDetailsResultDto> GetWardByIdAsync(int wardId)
         {
             var repo = _unitOfWork.GetRepository<Ward, int>();
             var ward = await repo.GetByIdAsync(new WardWithRoomsAndBedsSpecification(wardId));
@@ -103,7 +103,6 @@ namespace Services.Implementations.WardBedModule
             await roomRepo.AddAsync(room);
             await _unitOfWork.SaveChangesAsync();
 
-            // Reload with Ward navigation
             var rooms = await roomRepo.GetAllAsync(new RoomsByWardSpecification(wardId));
             var loaded = rooms.First(r => r.Id == room.Id);
             return _mapper.Map<RoomResultDto>(loaded);
