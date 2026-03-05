@@ -19,10 +19,29 @@
         public ConflictException(string message) 
             :base(message)  { }
     }
-    public class ValidationException : Exception
+    public sealed class ValidationException : Exception
     {
-        public ValidationException(string message)
-            : base(message) { }
+        public IEnumerable<string> Errors { get; set; } = [];
+
+        public ValidationException(IEnumerable<string> errors) : base("Validation Failed")
+        {
+            Errors = errors;
+        }
+    }
+    public class UnauthorizedException : Exception
+    {
+        public UnauthorizedException(string message) : base(message) { }
+    }
+    public sealed class AccountLockedException : Exception
+    {
+        public AccountLockedException(DateTime lockoutEnd)
+    : base($"Account locked until {lockoutEnd:u}") { }
+    }
+
+    public sealed class EmailNotVerifiedException : Exception
+    {
+        public EmailNotVerifiedException()
+            : base("Please verify your email address before logging in.") { }
     }
     #region Patient Module
     public sealed class PatientNotFoundException : NotFoundException

@@ -9,7 +9,7 @@ builder.Services.AddWebApiServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // Add core services
-builder.Services.AddCoreServices();
+builder.Services.AddCoreServices(builder.Configuration);
 
 var app = builder.Build();
 // Seed the database with WebApplication extension method
@@ -25,6 +25,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("DevPolicy");
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
 app.MapControllers();

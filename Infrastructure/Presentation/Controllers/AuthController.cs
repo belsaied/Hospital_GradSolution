@@ -1,0 +1,73 @@
+﻿using Domain.Models.IdentityModule;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Services.Abstraction.Contracts;
+using Shared.Dtos.UserManagementDtos;
+using System.Security.Claims;
+
+namespace Presentation.Controllers
+{
+    [AllowAnonymous]
+    public class AuthController(
+        IAuthService _authService,
+        UserManager<ApplicationUser> _userManager) : ApiController
+    {
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterDto dto)
+        {
+            var callerRole = User.FindFirstValue(ClaimTypes.Role);
+            return StatusCode(201, await _authService.RegisterAsync(dto, callerRole));
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+            => Ok(await _authService.LoginAsync(dto));
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh(RefreshTokenDto dto)
+            => Ok(await _authService.RefreshTokenAsync(dto.RefreshToken));
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await _authService.LogoutAsync(userId);
+            return NoContent();
+        }
+
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string token)
+        {
+            await _authService.VerifyEmailAsync(token);
+            return Ok("Email verified successfully.");
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgetPasswordDto dto)
+        {
+            await _authService.ForgotPasswordAsync(dto.Email);
+            return Ok(); // Always 200 — prevents user enumeration
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            await _authService.ResetPasswordAsync(dto);
+            return Ok();
+        }
+
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpDelete("lockout/{userId}")]
+        public async Task<IActionResult> UnlockAccount(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is null) return NotFound();
+            user.LockoutEnd = null;
+            user.FailedLoginAttempts = 0;
+            await _userManager.UpdateAsync(user);
+            return NoContent();
+        }
+    }
+}

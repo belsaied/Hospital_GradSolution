@@ -10,7 +10,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 
-public class DataSeeding(HospitalDbContext _dbContext) : IDataSeeding
+public class DataSeeding(HospitalDbContext _dbContext)
+ : IDataSeeding
 {
     public async Task SeedDataAsync()
     {

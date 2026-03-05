@@ -35,5 +35,11 @@ namespace Services.Abstraction.Contracts
 
         #endregion
 
+        #region Identity
+        public IAuthService AuthService { get; }
+        public IAuditService AuditService { get; }
+        public IEmailService EmailService { get; }
+        #endregion
+
     }
 }

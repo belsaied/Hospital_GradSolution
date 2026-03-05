@@ -1,5 +1,6 @@
 ﻿using Domain.Contracts;
 using Hospital_Grad.API.MiddleWares;
+using Persistence.Data.Identity;
 
 namespace Hospital_Grad.API.Extensions
 {
@@ -10,6 +11,8 @@ namespace Hospital_Grad.API.Extensions
             using var scope = app.Services.CreateScope();
             var ObjOfdataSeeding = scope.ServiceProvider.GetRequiredService<IDataSeeding>();
             await ObjOfdataSeeding.SeedDataAsync();
+            var identitySeeding = scope.ServiceProvider.GetRequiredService<IdentityDataSeeding>();
+            await identitySeeding.SeedAsync();
             return app;
         }
         public static WebApplication UseExceptionHandlingMiddlewares(this WebApplication app)

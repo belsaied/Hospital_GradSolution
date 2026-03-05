@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services.Exceptions;
+using Shared.ErrorModels;
 
 namespace Hospital_Grad.API.MiddleWares
 {
@@ -44,7 +45,9 @@ namespace Hospital_Grad.API.MiddleWares
                 //Updated =>Abdo
                 NotFoundException => StatusCodes.Status404NotFound,
                 ConflictException => StatusCodes.Status409Conflict,
-                ValidationException => StatusCodes.Status400BadRequest,
+                ValidationException v => HandleValidationException(v, Problem),
+                AccountLockedException => StatusCodes.Status403Forbidden,    
+                EmailNotVerifiedException => StatusCodes.Status403Forbidden,
                 BusinessRuleException => StatusCodes.Status422UnprocessableEntity,
                 _ => StatusCodes.Status500InternalServerError
             };
@@ -71,5 +74,10 @@ namespace Hospital_Grad.API.MiddleWares
             BusinessRuleException => "Business Rule Violation",
             _ => "An unexpected error occurred"
         };
+        private int HandleValidationException(ValidationException ex, ErrorDetails Problem)
+        {
+            Problem.Errors = ex.Errors;
+            return StatusCodes.Status400BadRequest;
+        }
     }
 }

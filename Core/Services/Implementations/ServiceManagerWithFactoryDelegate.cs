@@ -21,7 +21,10 @@ namespace Services.Implementations
         //WardBed Module
         Func<IWardService>_wardService,
         Func<IBedService>_bedService,
-        Func<IAdmissionService> _admissionService
+        Func<IAdmissionService> _admissionService,
+        Func<IAuthService> _authService,
+        Func<IAuditService> _auditService,
+        Func<IEmailService> _emailService
         ) : IServiceManager
     {
         //Patient Module
@@ -51,5 +54,10 @@ namespace Services.Implementations
         public IBedService BedService => _bedService.Invoke();
 
         public IAdmissionService AdmissionService => _admissionService.Invoke();
+
+        // Identiy
+        public IAuthService AuthService => _authService.Invoke();
+        public IAuditService AuditService => _auditService.Invoke();
+        public IEmailService EmailService => _emailService.Invoke();
     }
 }
