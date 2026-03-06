@@ -52,6 +52,9 @@ namespace Hospital_Grad.API.MiddleWares
                 case NotFoundException:
                     statusCode = StatusCodes.Status404NotFound;
                     break;
+                case ForbiddenException:
+                    statusCode = StatusCodes.Status403Forbidden;
+                    break;
                 case ConflictException:
                     statusCode = StatusCodes.Status409Conflict;
                     break;
@@ -90,6 +93,7 @@ namespace Hospital_Grad.API.MiddleWares
             NotFoundException => "Resource Not Found",
             ConflictException => "Confilct",
             ValidationException => "Validation Error",
+            ForbiddenException => "Forbidden",
             BusinessRuleException => "Business Rule Violation",
             _ => "An unexpected error occurred"
         };

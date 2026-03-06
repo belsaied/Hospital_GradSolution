@@ -37,7 +37,10 @@
         public AccountLockedException(DateTime lockoutEnd)
     : base($"Account locked until {lockoutEnd:u}") { }
     }
-
+    public sealed class ForbiddenException : Exception
+    {
+        public ForbiddenException(string message) : base(message) { }
+    }
     public sealed class EmailNotVerifiedException : Exception
     {
         public EmailNotVerifiedException()

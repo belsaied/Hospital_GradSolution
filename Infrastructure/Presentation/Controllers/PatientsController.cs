@@ -1,17 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared;
 using Shared.Dtos.PatientModule.PatientDtos;
 using Shared.Parameters;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PatientsController(IServiceManager _serviceManager) : ControllerBase
     {
         // Register a new patient
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpPost]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status201Created)]
         public async Task<ActionResult<PatientResultDto>> RegisterPatient([FromBody] CreatePatientDto createPatientDto)
@@ -27,6 +31,7 @@ namespace Presentation.Controllers
          => Ok(await _serviceManager.PatientService.GetPatientByIdAsync(id));
 
         // Update patient
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -35,6 +40,7 @@ namespace Presentation.Controllers
           => Ok(await _serviceManager.PatientService.UpdatePatientAsync(id, updatePatientDto));
 
         // Deactivate patient (soft delete)
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -45,9 +51,10 @@ namespace Presentation.Controllers
         }
 
 
-       
+
 
         // GET api/patients — paginated list
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet]
         [ProducesResponseType(typeof(PaginatedResult<PatientResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedResult<PatientResultDto>>> GetAllPatients(
@@ -70,6 +77,7 @@ namespace Presentation.Controllers
         }
 
         // Upload patient picture
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [HttpPost("{id:int}/picture")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]
@@ -103,6 +111,5 @@ namespace Presentation.Controllers
 
             return Ok(patient);
         }
-
     }
 }

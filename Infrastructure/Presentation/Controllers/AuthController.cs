@@ -70,5 +70,21 @@ namespace Presentation.Controllers
             await _userManager.UpdateAsync(user);
             return NoContent();
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            var userInfo = new
+            {
+                Id = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Email = User.FindFirstValue(ClaimTypes.Email),
+                FullName = User.FindFirstValue(ClaimTypes.Name),
+                Roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList(),
+                DoctorId = User.FindFirstValue("doctor_id"),
+                PatientId = User.FindFirstValue("patient_id")
+            };
+            return Ok(userInfo);
+        }
     }
 }
