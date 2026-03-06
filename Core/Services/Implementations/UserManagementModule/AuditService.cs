@@ -1,21 +1,11 @@
-﻿using Domain.Models.IdentityModule;
+﻿using Domain.Contracts;
 using Services.Abstraction.Contracts;
 
 namespace Services.Implementations.UserManagementModule
 {
-    public class AuditService(IdentityHospitalDbContext _identityContext) : IAuditService
+    public class AuditService(IAuditRepository _auditRepository) : IAuditService
     {
-        public async Task LogAsync(string userId, string action, string? details = null, string? ip = null)
-        {
-            var log = new AuditLog
-            {
-                UserId = userId,
-                Action = action,
-                Details = details,
-                IpAddress = ip,
-            };
-            await _identityContext.AuditLogs.AddAsync(log);
-            await _identityContext.SaveChangesAsync();
-        }
+        public Task LogAsync(string userId, string action, string? details = null, string? ip = null)
+            => _auditRepository.LogAsync(userId, action, details, ip);
     }
 }

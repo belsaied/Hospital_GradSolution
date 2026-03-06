@@ -26,21 +26,17 @@ namespace Persistence.Data.Configurations.UserManagementConfigs
             builder.Property(x => x.IpAddress)
                 .HasMaxLength(45);   // supports IPv6
 
-            builder.Property(x => x.OccurredAt)
-                .HasColumnType("datetime2")
+            builder.Property(x => x.CreatedAt)  
+                .HasColumnType("datetimeoffset")
                 .IsRequired();
 
             // Indexes for common queries (audit trail by user, audit trail by action)
             builder.HasIndex(x => x.UserId)
                 .HasDatabaseName("IX_AuditLogs_UserId");
 
-            builder.HasIndex(x => new { x.UserId, x.OccurredAt })
+            builder.HasIndex(x => new { x.UserId, x.CreatedAt })  
                 .HasDatabaseName("IX_AuditLogs_UserId_OccurredAt");
 
-            builder.HasOne(x => x.User)
-                .WithMany()
-                .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

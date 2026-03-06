@@ -27,6 +27,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IDataSeeding, DataSeeding>();
             services.AddScoped<IdentityDataSeeding>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IAuditRepository, AuditRepository>();
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 8;

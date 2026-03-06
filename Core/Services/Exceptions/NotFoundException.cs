@@ -19,7 +19,7 @@
         public ConflictException(string message) 
             :base(message)  { }
     }
-    public sealed class ValidationException : Exception
+    public class ValidationException : Exception
     {
         public IEnumerable<string> Errors { get; set; } = [];
 
@@ -84,13 +84,13 @@
     public sealed class InvalidScheduleTimeException : ValidationException
     {
         public InvalidScheduleTimeException()
-            : base("EndTime must be strictly greater than StartTime") { }
+            : base(new[] { "EndTime must be strictly greater than StartTime" }) { }
     }
 
     public sealed class OverlappingScheduleException : ValidationException
     {
         public OverlappingScheduleException(string day)
-            : base($"Doctor already has a schedule for {day}. Remove it first before setting a new one") { }
+            : base(new[] { $"Doctor already has a schedule for {day}. Remove it first before setting a new one" }) { }
     }
     #endregion
 

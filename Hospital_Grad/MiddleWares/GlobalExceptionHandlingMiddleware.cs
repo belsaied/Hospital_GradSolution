@@ -40,17 +40,32 @@ namespace Hospital_Grad.API.MiddleWares
 
         private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            var statusCode = ex switch
+            int statusCode;
+            IEnumerable<string>? validationErrors = null;
+
+            switch (ex)
             {
-                //Updated =>Abdo
-                NotFoundException => StatusCodes.Status404NotFound,
-                ConflictException => StatusCodes.Status409Conflict,
-                ValidationException v => HandleValidationException(v, Problem),
-                AccountLockedException => StatusCodes.Status403Forbidden,    
-                EmailNotVerifiedException => StatusCodes.Status403Forbidden,
-                BusinessRuleException => StatusCodes.Status422UnprocessableEntity,
-                _ => StatusCodes.Status500InternalServerError
-            };
+                case ValidationException ve:
+                    statusCode = StatusCodes.Status400BadRequest;
+                    validationErrors = ve.Errors;
+                    break;
+                case NotFoundException:
+                    statusCode = StatusCodes.Status404NotFound;
+                    break;
+                case ConflictException:
+                    statusCode = StatusCodes.Status409Conflict;
+                    break;
+                case AccountLockedException:
+                case EmailNotVerifiedException:
+                    statusCode = StatusCodes.Status403Forbidden;
+                    break;
+                case BusinessRuleException:
+                    statusCode = StatusCodes.Status422UnprocessableEntity;
+                    break;
+                default:
+                    statusCode = StatusCodes.Status500InternalServerError;
+                    break;
+            }
 
             var response = new ProblemDetails
             {
@@ -60,10 +75,14 @@ namespace Hospital_Grad.API.MiddleWares
                 Status = statusCode
             };
 
+            if (validationErrors is not null)
+                response.Extensions["errors"] = validationErrors;
+
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(response);
         }
+
 
         private static string GetTitle(Exception ex) => ex switch
         {
@@ -74,10 +93,6 @@ namespace Hospital_Grad.API.MiddleWares
             BusinessRuleException => "Business Rule Violation",
             _ => "An unexpected error occurred"
         };
-        private int HandleValidationException(ValidationException ex, ErrorDetails Problem)
-        {
-            Problem.Errors = ex.Errors;
-            return StatusCodes.Status400BadRequest;
-        }
+
     }
 }

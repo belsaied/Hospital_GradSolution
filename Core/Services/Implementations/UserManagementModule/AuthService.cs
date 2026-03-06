@@ -6,7 +6,6 @@ using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Shared.Common;
 using Shared.Dtos.UserManagementDtos;
-using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;

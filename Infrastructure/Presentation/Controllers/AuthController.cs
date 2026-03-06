@@ -8,22 +8,23 @@ using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
-    [AllowAnonymous]
+
     public class AuthController(
         IAuthService _authService,
         UserManager<ApplicationUser> _userManager) : ApiController
     {
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
             var callerRole = User.FindFirstValue(ClaimTypes.Role);
             return StatusCode(201, await _authService.RegisterAsync(dto, callerRole));
         }
-
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
             => Ok(await _authService.LoginAsync(dto));
-
+        [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(RefreshTokenDto dto)
             => Ok(await _authService.RefreshTokenAsync(dto.RefreshToken));
@@ -36,21 +37,21 @@ namespace Presentation.Controllers
             await _authService.LogoutAsync(userId);
             return NoContent();
         }
-
+        [AllowAnonymous]
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
             await _authService.VerifyEmailAsync(token);
             return Ok("Email verified successfully.");
         }
-
+        [AllowAnonymous]
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgetPasswordDto dto)
         {
             await _authService.ForgotPasswordAsync(dto.Email);
             return Ok(); // Always 200 — prevents user enumeration
         }
-
+        [AllowAnonymous]
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
         {

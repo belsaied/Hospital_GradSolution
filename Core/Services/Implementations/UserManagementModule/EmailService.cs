@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using Services.Abstraction.Contracts;
 using Shared.Common;
-using System.Net.Mail;
+
 
 namespace Services.Implementations.UserManagementModule
 {
