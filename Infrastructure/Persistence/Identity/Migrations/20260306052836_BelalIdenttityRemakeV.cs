@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Persistence.Identity.Migrations
 {
     /// <inheritdoc />
-    public partial class IdentityAbdo : Migration
+    public partial class BelalIdenttityRemakeV : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

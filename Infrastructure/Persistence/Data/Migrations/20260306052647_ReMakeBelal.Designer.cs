@@ -12,8 +12,8 @@ using Persistence.Data.DbContexts;
 namespace Persistence.Data.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    [Migration("20260306044737_WardBedAbdoo")]
-    partial class WardBedAbdoo
+    [Migration("20260306052647_ReMakeBelal")]
+    partial class ReMakeBelal
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
