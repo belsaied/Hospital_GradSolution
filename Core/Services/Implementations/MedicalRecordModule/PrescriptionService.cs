@@ -22,7 +22,7 @@ namespace Services.Implementations.MedicalRecordModule
 
             // 2. ExpiresAt must be in the future
             if (dto.ExpiresAt <= DateOnly.FromDateTime(DateTime.UtcNow))
-                throw new ValidationException("Prescription expiry date must be in the future.");
+                throw new ValidationException(new[] { "Prescription expiry date must be in the future." });
 
             // 3. Allergy cross-check
             var allergyRepo = _unitOfWork.GetRepository<PatientAllergy, int>();

@@ -39,7 +39,7 @@ namespace Services.Implementations.AppointmentModule
 
             // 3. Date must be today or in the future
             if (dto.AppointmentDate < DateOnly.FromDateTime(DateTime.UtcNow))
-                throw new ValidationException("Appointment date must be today or in the future.");
+                throw new ValidationException(new[] { "Appointment date must be today or in the future." });
 
             // 4. StartTime must fall within a DoctorSchedule slot for that DayOfWeek
             var customDay = dto.AppointmentDate.DayOfWeek;
@@ -214,7 +214,7 @@ namespace Services.Implementations.AppointmentModule
             if (dto.NewStatus == AppointmentStatus.Cancelled)
             {
                 if (string.IsNullOrEmpty(dto.CancellationReason))
-                    throw new ValidationException("CancellationReason is required when cancelling.");
+                    throw new ValidationException(new[] { "CancellationReason is required when cancelling." });
                 apt.CancellationReason = dto.CancellationReason;
             }
 

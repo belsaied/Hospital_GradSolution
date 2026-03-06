@@ -21,8 +21,27 @@
     }
     public class ValidationException : Exception
     {
-        public ValidationException(string message)
-            : base(message) { }
+        public IEnumerable<string> Errors { get; set; } = [];
+
+        public ValidationException(IEnumerable<string> errors) : base("Validation Failed")
+        {
+            Errors = errors;
+        }
+    }
+    public class UnauthorizedException : Exception
+    {
+        public UnauthorizedException(string message) : base(message) { }
+    }
+    public sealed class AccountLockedException : Exception
+    {
+        public AccountLockedException(DateTime lockoutEnd)
+    : base($"Account locked until {lockoutEnd:u}") { }
+    }
+
+    public sealed class EmailNotVerifiedException : Exception
+    {
+        public EmailNotVerifiedException()
+            : base("Please verify your email address before logging in.") { }
     }
     #region Patient Module
     public sealed class PatientNotFoundException : NotFoundException
@@ -65,13 +84,13 @@
     public sealed class InvalidScheduleTimeException : ValidationException
     {
         public InvalidScheduleTimeException()
-            : base("EndTime must be strictly greater than StartTime") { }
+            : base(new[] { "EndTime must be strictly greater than StartTime" }) { }
     }
 
     public sealed class OverlappingScheduleException : ValidationException
     {
         public OverlappingScheduleException(string day)
-            : base($"Doctor already has a schedule for {day}. Remove it first before setting a new one") { }
+            : base(new[] { $"Doctor already has a schedule for {day}. Remove it first before setting a new one" }) { }
     }
     #endregion
 

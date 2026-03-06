@@ -21,7 +21,7 @@ namespace Services.Implementations.MedicalRecordModule
 
             // 2. Stat orders require non-empty Notes
             if (dto.Priority == LabOrderPriority.Stat && string.IsNullOrWhiteSpace(dto.Notes))
-                throw new ValidationException("Stat priority lab orders require Notes explaining clinical urgency.");
+                throw new ValidationException(new[] { "Stat priority lab orders require Notes explaining clinical urgency." });
 
             // 3. Map and save
             var labOrder = _mapper.Map<LabOrder>(dto);

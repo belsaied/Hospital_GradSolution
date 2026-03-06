@@ -7,13 +7,15 @@ using Services.Implementations.AppointmentModule;
 using Services.Implementations.DoctorModule;
 using Services.Implementations.MedicalRecordModule;
 using Services.Implementations.PatientModule;
+using Services.Implementations.UserManagementModule;
 using Services.Implementations.WardBedModule;
+using Shared.Common;
 
 namespace Hospital_Grad.API.Extensions
 {
     public static class CoreServiceExtensions
     {
-        public static IServiceCollection AddCoreServices(this IServiceCollection services)
+        public static IServiceCollection AddCoreServices(this IServiceCollection services , IConfiguration configuration)
         {
             services.AddAutoMapper(cfg => { }, typeof(ServiceAssemblyReference).Assembly);
             services.AddScoped<IServiceManager, ServiceManagerWithFactoryDelegate>();
@@ -35,6 +37,9 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IBedService, BedService>();
             services.AddScoped<IAdmissionService, AdmissionService>();
             services.AddScoped<IBedNotifier, BedNotifier>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IAuditService, AuditService>();
+            services.AddScoped<IEmailService, EmailService>();
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
                 () => provider.GetRequiredService<IPatientService>()
@@ -78,6 +83,11 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<Func<IAdmissionService>>(provider =>
             () => provider.GetRequiredService<IAdmissionService>()
             );
+            services.AddScoped<Func<IAuthService>>(p => () => p.GetRequiredService<IAuthService>());
+            services.AddScoped<Func<IAuditService>>(p => () => p.GetRequiredService<IAuditService>());
+            services.AddScoped<Func<IEmailService>>(p => () => p.GetRequiredService<IEmailService>());
+
+            services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
             return services;
         }
     }
