@@ -24,6 +24,8 @@ namespace Presentation.Controllers
             return CreatedAtAction(nameof(GetPatientById), new { id = patient.Id }, patient);
         }
         // Get patient details by ID
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist,Patient")]
+        [Authorize(Policy = "PatientOwnership")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -32,6 +34,7 @@ namespace Presentation.Controllers
 
         // Update patient
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
+        [Authorize(Policy = "PatientOwnership")]
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -65,6 +68,7 @@ namespace Presentation.Controllers
         }
 
         // GET api/patients/{id}/details — single patient with full nested data
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse")]
         [HttpGet("{id:int}/details")]
         [ProducesResponseType(typeof(PatientWithDetailsResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -78,6 +82,7 @@ namespace Presentation.Controllers
 
         // Upload patient picture
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
+        [Authorize(Policy = "PatientOwnership")]
         [HttpPost("{id:int}/picture")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]

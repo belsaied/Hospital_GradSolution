@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.PatientModule.EmergencyContactsDtos;
@@ -7,9 +8,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/patients/{patientId:int}/emergency-contacts")]
+    [Authorize]
     public class EmergencyContactsController(IServiceManager _serviceManager) : ControllerBase
     {
         // Add emergency contact for a patient
+        [Authorize(Policy = "PatientOwnership")]
         [HttpPost]
         [ProducesResponseType(typeof(EmergencyContactResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -26,6 +29,7 @@ namespace Presentation.Controllers
         }
 
         // Get all emergency contacts for a patient
+        [Authorize(Policy = "PatientOwnership")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<EmergencyContactResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<EmergencyContactResultDto>>> GetEmergencyContacts(int patientId)
@@ -35,6 +39,7 @@ namespace Presentation.Controllers
         }
 
         // Update emergency contact
+        [Authorize(Policy = "PatientOwnership")]
         [HttpPut("{contactId:int}")]
         [ProducesResponseType(typeof(EmergencyContactResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

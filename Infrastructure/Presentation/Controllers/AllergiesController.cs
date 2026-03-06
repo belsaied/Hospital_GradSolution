@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.PatientModule.AllergyDtos;
@@ -7,9 +8,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/patients/{patientId:int}/allergies")]
+    [Authorize]
     public class AllergiesController(IServiceManager _serviceManager) : ControllerBase
     {
         // Add allergy for a patient
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpPost]
         [ProducesResponseType(typeof(AllergyResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -24,6 +27,8 @@ namespace Presentation.Controllers
         }
 
         // Get all allergies for a patient
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Patient")]
+        [Authorize(Policy = "PatientOwnership")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<AllergyResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<AllergyResultDto>>> GetPatientAllergies(int patientId)
@@ -33,6 +38,7 @@ namespace Presentation.Controllers
         }
 
         // Remove an allergy
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpDelete("{allergyId:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

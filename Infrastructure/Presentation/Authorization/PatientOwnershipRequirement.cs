@@ -29,9 +29,13 @@ namespace Presentation.Authorization
                 return Task.CompletedTask;
             }
 
-            // Extract route {id}
-            if (!httpContext.Request.RouteValues.TryGetValue("id", out var routeId)
-                || !int.TryParse(routeId?.ToString(), out var requestedId))
+            // Support both {id} (PatientsController) and {patientId} (sub-resource controllers)
+            var routeValues = httpContext.Request.RouteValues;
+            var rawId = routeValues.TryGetValue("id", out var id1) ? id1
+                      : routeValues.TryGetValue("patientId", out var id2) ? id2
+                      : null;
+
+            if (rawId is null || !int.TryParse(rawId.ToString(), out var requestedId))
             {
                 context.Fail();
                 return Task.CompletedTask;

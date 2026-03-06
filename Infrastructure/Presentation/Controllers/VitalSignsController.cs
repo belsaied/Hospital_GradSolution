@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.MedicalRecordsDto;
@@ -7,6 +8,7 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/patients/{patientId:int}/vitals")]
+    [Authorize]
     public class VitalSignsController(IServiceManager _serviceManager) : ControllerBase
     {
         [HttpGet]
@@ -14,6 +16,7 @@ namespace Presentation.Controllers
         public async Task<ActionResult<IEnumerable<VitalSignResultDto>>> GetPatientVitals(int patientId)
     => Ok(await _serviceManager.VitalSignService.GetPatientVitalHistoryAsync(patientId));
 
+        [Authorize(Policy = "PatientOwnership")]
         [HttpGet("latest")]
         [ProducesResponseType(typeof(VitalSignResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
