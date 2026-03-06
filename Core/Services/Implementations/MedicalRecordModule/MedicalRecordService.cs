@@ -32,7 +32,7 @@ namespace Services.Implementations.MedicalRecordModule
 
             // 3. Visit date cannot be in the future
             if (dto.VisitDate > DateTime.UtcNow)
-                throw new ValidationException("Visit date cannot be in the future.");
+                throw new ValidationException(new[] { "Visit date cannot be in the future." });
 
             // 4. Validate appointment ownership if provided
             if (dto.AppointmentId.HasValue)
