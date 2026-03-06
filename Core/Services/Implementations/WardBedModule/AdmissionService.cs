@@ -161,6 +161,7 @@ namespace Services.Implementations.WardBedModule
             return _mapper.Map<AdmissionResultDto>(updated!);
         }
 
+
         public async Task<AdmissionResultDto> TransferPatientAsync(int admissionId, TransferBedDto dto)
         {
             var admissionRepo = _unitOfWork.GetRepository<Admission, int>();
