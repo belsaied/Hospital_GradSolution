@@ -1,4 +1,6 @@
-﻿using Presentation.Hubs;
+﻿using Microsoft.AspNetCore.Authorization;
+using Presentation.Authorization;
+using Presentation.Hubs;
 using Services;
 using Services.Abstraction.Contracts;
 using Services.Abstraction.Contracts.WardBedService;
@@ -19,7 +21,12 @@ namespace Hospital_Grad.API.Extensions
         {
             services.AddAutoMapper(cfg => { }, typeof(ServiceAssemblyReference).Assembly);
             services.AddScoped<IServiceManager, ServiceManagerWithFactoryDelegate>();
+            services.AddHttpContextAccessor();
+            services.AddScoped<IAuthorizationHandler, PatientOwnershipHandler>();
 
+            services.AddAuthorizationBuilder()
+                .AddPolicy("PatientOwnership", policy =>
+                    policy.Requirements.Add(new PatientOwnershipRequirement()));
             // Register all services
             services.AddScoped<IPatientService, PatientService>();
             services.AddScoped<IAllergyService, AllergyService>();

@@ -14,6 +14,7 @@ namespace Hospital_Grad.API.MiddleWares
             {
                 await _next.Invoke(context);
                 await HandleNotFoundEndpointAsync(context);
+                await HandleForbiddenAsync(context);
             }
             catch (Exception ex)
             {
@@ -38,6 +39,22 @@ namespace Hospital_Grad.API.MiddleWares
             }
         }
 
+        private static async Task HandleForbiddenAsync(HttpContext context)
+        {
+            if (context.Response.StatusCode == StatusCodes.Status403Forbidden
+                && !context.Response.HasStarted)
+            {
+                var response = new ProblemDetails
+                {
+                    Title = "Forbidden",
+                    Detail = "You do not have permission to access this resource.",
+                    Instance = context.Request.Path,
+                    Status = StatusCodes.Status403Forbidden
+                };
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(response);
+            }
+        }
         private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
             int statusCode;
@@ -85,7 +102,6 @@ namespace Hospital_Grad.API.MiddleWares
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(response);
         }
-
 
         private static string GetTitle(Exception ex) => ex switch
         {
