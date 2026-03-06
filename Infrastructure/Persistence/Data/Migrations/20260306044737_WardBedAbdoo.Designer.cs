@@ -12,15 +12,15 @@ using Persistence.Data.DbContexts;
 namespace Persistence.Data.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    [Migration("20260228223439_MedicalRecordModule")]
-    partial class MedicalRecordModule
+    [Migration("20260306044737_WardBedAbdoo")]
+    partial class WardBedAbdoo
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -306,6 +306,163 @@ namespace Persistence.Data.Migrations
                     b.HasIndex("DoctorId");
 
                     b.ToTable("DoctorSchedules", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.IdentityModule.ApplicationUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("EmailVerificationExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmailVerificationTokenHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("FailedLoginAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordResetExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordResetTokenHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int?>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("RefreshTokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RefreshTokenHash")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AspNetUsers_DoctorId")
+                        .HasFilter("[DoctorId] IS NOT NULL");
+
+                    b.HasIndex("EmailVerificationTokenHash")
+                        .HasDatabaseName("IX_AspNetUsers_EmailVerificationTokenHash");
+
+                    b.HasIndex("PasswordResetTokenHash")
+                        .HasDatabaseName("IX_AspNetUsers_PasswordResetTokenHash");
+
+                    b.HasIndex("PatientId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AspNetUsers_PatientId")
+                        .HasFilter("[PatientId] IS NOT NULL");
+
+                    b.HasIndex("RefreshTokenHash")
+                        .HasDatabaseName("IX_AspNetUsers_RefreshTokenHash");
+
+                    b.ToTable("ApplicationUser");
+                });
+
+            modelBuilder.Entity("Domain.Models.IdentityModule.AuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_AuditLogs_UserId");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .HasDatabaseName("IX_AuditLogs_UserId_OccurredAt");
+
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.MedicalRecordModule.LabOrder", b =>
@@ -824,6 +981,230 @@ namespace Persistence.Data.Migrations
                     b.ToTable("PatientMedicalHistories", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Models.WardBedModule.Admission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActualDischargeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("AdmissionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AdmissionReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("AdmittedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("AdmittingDoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BedId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DischargeSummary")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateOnly?>("ExpectedDischargeDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdmittingDoctorId")
+                        .HasDatabaseName("IX_Admissions_DoctorId");
+
+                    b.HasIndex("BedId")
+                        .HasDatabaseName("IX_Admissions_BedId");
+
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("IX_Admissions_PatientId");
+
+                    b.ToTable("Admissions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Bed", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BedNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("BedType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId", "BedNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Beds_RoomId_BedNumber");
+
+                    b.ToTable("Beds", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.BedTransfer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FromBedId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ToBedId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TransferredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransferredBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdmissionId")
+                        .HasDatabaseName("IX_BedTransfers_AdmissionId");
+
+                    b.HasIndex("FromBedId");
+
+                    b.HasIndex("ToBedId");
+
+                    b.ToTable("BedTransfers", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Room", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RoomNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("WardId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WardId", "RoomNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Rooms_WardId_RoomNumber");
+
+                    b.ToTable("Rooms", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Ward", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("Floor")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PhoneExtension")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("WardType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Wards", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Models.AppointmentModule.Appointment", b =>
                 {
                     b.HasOne("Domain.Models.DoctorModule.Doctor", "Doctor")
@@ -1068,6 +1449,82 @@ namespace Persistence.Data.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("Domain.Models.WardBedModule.Admission", b =>
+                {
+                    b.HasOne("Domain.Models.DoctorModule.Doctor", "AdmittingDoctor")
+                        .WithMany()
+                        .HasForeignKey("AdmittingDoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.WardBedModule.Bed", "Bed")
+                        .WithMany("Admissions")
+                        .HasForeignKey("BedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.PatientModule.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AdmittingDoctor");
+
+                    b.Navigation("Bed");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Bed", b =>
+                {
+                    b.HasOne("Domain.Models.WardBedModule.Room", "Room")
+                        .WithMany("Beds")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.BedTransfer", b =>
+                {
+                    b.HasOne("Domain.Models.WardBedModule.Admission", "Admission")
+                        .WithMany("Transfers")
+                        .HasForeignKey("AdmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.WardBedModule.Bed", "FromBed")
+                        .WithMany()
+                        .HasForeignKey("FromBedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.WardBedModule.Bed", "ToBed")
+                        .WithMany()
+                        .HasForeignKey("ToBedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Admission");
+
+                    b.Navigation("FromBed");
+
+                    b.Navigation("ToBed");
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Room", b =>
+                {
+                    b.HasOne("Domain.Models.WardBedModule.Ward", "Ward")
+                        .WithMany("Rooms")
+                        .HasForeignKey("WardId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ward");
+                });
+
             modelBuilder.Entity("Domain.Models.DoctorModule.Department", b =>
                 {
                     b.Navigation("Doctors");
@@ -1101,6 +1558,26 @@ namespace Persistence.Data.Migrations
                     b.Navigation("PatientAllergies");
 
                     b.Navigation("PatientMedicalHistories");
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Admission", b =>
+                {
+                    b.Navigation("Transfers");
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Bed", b =>
+                {
+                    b.Navigation("Admissions");
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Room", b =>
+                {
+                    b.Navigation("Beds");
+                });
+
+            modelBuilder.Entity("Domain.Models.WardBedModule.Ward", b =>
+                {
+                    b.Navigation("Rooms");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,7 +12,7 @@ using System.Text;
 
 namespace Services.Implementations.WardBedModule
 {
-    public class BedService(IUnitOfWork _unitOfWork, IMapper _mapper) : IBedService
+    public class BedService(IUnitOfWork _unitOfWork, IMapper _mapper,IBedNotifier _notifier) : IBedService
     {
         public async Task<BedResultDto> AddBedToRoomAsync(int roomId, CreateBedDto dto)
         {
@@ -118,4 +118,5 @@ namespace Services.Implementations.WardBedModule
             return _mapper.Map<IEnumerable<BedAvailabilityResultDto>>(beds);
 
         }
+    }
 }

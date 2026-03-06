@@ -12,8 +12,8 @@ using Persistence.Data.Identity;
 namespace Persistence.Identity.Migrations
 {
     [DbContext(typeof(IdentityHospitalDbContext))]
-    [Migration("20260306020741_UserManagmentModule")]
-    partial class UserManagmentModule
+    [Migration("20260306042145_IdentityAbdo")]
+    partial class IdentityAbdo
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
