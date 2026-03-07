@@ -11,11 +11,15 @@ namespace Presentation.Controllers
     [Authorize]
     public class VitalSignsController(IServiceManager _serviceManager) : ControllerBase
     {
+        // GET /api/patients/{patientId}/vitals
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<VitalSignResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<VitalSignResultDto>>> GetPatientVitals(int patientId)
-    => Ok(await _serviceManager.VitalSignService.GetPatientVitalHistoryAsync(patientId));
+        => Ok(await _serviceManager.VitalSignService.GetPatientVitalHistoryAsync(patientId));
 
+        // GET /api/patients/{patientId}/vitals/latest
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpGet("latest")]
         [ProducesResponseType(typeof(VitalSignResultDto), StatusCodes.Status200OK)]

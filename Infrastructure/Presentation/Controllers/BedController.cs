@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.WardBedModule.BedDtos;
@@ -10,10 +11,12 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/beds")]
+    [Authorize]
     public class BedController(IServiceManager _serviceManager) : ControllerBase
     {
         // GET api/beds/available
         // GET api/beds/available?wardType=ICU&bedType=Standard
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("available")]
         [ProducesResponseType(typeof(IEnumerable<BedAvailabilityResultDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAvailableBeds(
@@ -24,6 +27,7 @@ namespace Presentation.Controllers
             return Ok(result);
         }
         // PUT api/beds/5/status
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Nurse")]
         [HttpPut("{bedId:int}/status")]
         [ProducesResponseType(typeof(BedResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

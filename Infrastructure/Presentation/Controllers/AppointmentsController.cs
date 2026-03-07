@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared;
@@ -9,9 +10,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AppointmentsController (IServiceManager _serviceManager): ControllerBase
     {
         // POST /api/appointments
+        [Authorize(Roles = "SuperAdmin,Receptionist,Patient")]
         [HttpPost]
         [ProducesResponseType(typeof(AppointmentResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -25,6 +28,7 @@ namespace Presentation.Controllers
         }
 
         // GET /api/appointments/{id}
+        [Authorize(Roles = "SuperAdmin,Doctor,Patient")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(AppointmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -32,6 +36,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.AppointmentService.GetAppointmentByIdAsync(id));
 
         // GET /api/appointments
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet]
         [ProducesResponseType(typeof(PaginatedResult<AppointmentResultDto>),
             StatusCodes.Status200OK)]
@@ -41,6 +46,7 @@ namespace Presentation.Controllers
                     .GetAllAppointmentsAsync(parameters));
 
         // GET /api/appointments/patient/{patientId}
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse,Receptionist,Patient")]
         [HttpGet("patient/{patientId:int}")]
         [ProducesResponseType(typeof(IEnumerable<AppointmentResultDto>),
             StatusCodes.Status200OK)]
@@ -51,6 +57,7 @@ namespace Presentation.Controllers
                     .GetPatientAppointmentsAsync(patientId));
 
         // GET /api/appointments/doctor/{doctorId}?date=2026-03-10
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse")]
         [HttpGet("doctor/{doctorId:int}")]
         [ProducesResponseType(typeof(IEnumerable<AppointmentResultDto>),
             StatusCodes.Status200OK)]
@@ -61,6 +68,7 @@ namespace Presentation.Controllers
                     .GetDoctorAppointmentsAsync(doctorId, date));
 
         // GET /api/appointments/available-slots?doctorId=1&date=2026-03-10
+        [Authorize(Roles = "SuperAdmin,Receptionist,Patient")]
         [HttpGet("available-slots")]
         [ProducesResponseType(typeof(IEnumerable<AvailableSlotDto>),
             StatusCodes.Status200OK)]
@@ -70,6 +78,7 @@ namespace Presentation.Controllers
                     .GetAvailableSlotsAsync(doctorId, date));
 
         // PUT /api/appointments/{id}/confirm
+        [Authorize(Roles = "SuperAdmin,Doctor,Receptionist")]
         [HttpPut("{id:int}/confirm")]
         [ProducesResponseType(typeof(AppointmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -78,6 +87,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.AppointmentService.ConfirmAppointmentAsync(id));
 
         // PUT /api/appointments/{id}/complete
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpPut("{id:int}/complete")]
         [ProducesResponseType(typeof(AppointmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -88,6 +98,7 @@ namespace Presentation.Controllers
                     .CompleteAppointmentAsync(id, notes));
 
         // PUT /api/appointments/{id}/cancel
+        [Authorize(Roles = "SuperAdmin,Doctor,Receptionist,Patient")]
         [HttpPut("{id:int}/cancel")]
         [ProducesResponseType(typeof(AppointmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -100,6 +111,7 @@ namespace Presentation.Controllers
         }
 
         // PUT /api/appointments/{id}/no-show
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpPut("{id:int}/no-show")]
         [ProducesResponseType(typeof(AppointmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

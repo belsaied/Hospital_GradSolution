@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.WardBedModule.BedDtos;
@@ -10,9 +11,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/rooms")]
+    [Authorize]
     public class RoomController(IServiceManager _serviceManager) : ControllerBase
     {
-        // GET api/rooms/1/beds
+        // GET api/rooms/{roomId}/beds
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("{roomId:int}/beds")]
         [ProducesResponseType(typeof(IEnumerable<BedResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -22,7 +25,8 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-        // POST api/rooms/1/beds
+        // POST api/rooms/1/beds/ POST api/rooms/{roomId}/beds
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPost("{roomId:int}/beds")]
         [ProducesResponseType(typeof(BedResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

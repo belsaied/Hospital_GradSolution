@@ -14,7 +14,7 @@ namespace Presentation.Controllers
     [Authorize]
     public class PatientsController(IServiceManager _serviceManager) : ControllerBase
     {
-        // Register a new patient
+        // POST /api/patients
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpPost]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status201Created)]
@@ -23,7 +23,7 @@ namespace Presentation.Controllers
             var patient = await _serviceManager.PatientService.RegisterPatientAsync(createPatientDto);
             return CreatedAtAction(nameof(GetPatientById), new { id = patient.Id }, patient);
         }
-        // Get patient details by ID
+        // GET /api/patients/{id}
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpGet("{id:int}")]
@@ -32,7 +32,7 @@ namespace Presentation.Controllers
         public async Task<ActionResult<PatientResultDto>> GetPatientById(int id)
          => Ok(await _serviceManager.PatientService.GetPatientByIdAsync(id));
 
-        // Update patient
+        // PUT /api/patients/{id}
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpPut("{id:int}")]
@@ -42,7 +42,7 @@ namespace Presentation.Controllers
         public async Task<ActionResult<PatientResultDto>> UpdatePatient(int id, [FromBody] UpdatePatientDto updatePatientDto)
           => Ok(await _serviceManager.PatientService.UpdatePatientAsync(id, updatePatientDto));
 
-        // Deactivate patient (soft delete)
+        // DELETE /api/patients/{id} - Soft delete
         [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -56,8 +56,8 @@ namespace Presentation.Controllers
 
 
 
-        // GET api/patients — paginated list
-        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
+        // GET /api/patients
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Nurse")]
         [HttpGet]
         [ProducesResponseType(typeof(PaginatedResult<PatientResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedResult<PatientResultDto>>> GetAllPatients(
@@ -80,7 +80,7 @@ namespace Presentation.Controllers
             return Ok(patient);
         }
 
-        // Upload patient picture
+        // POST /api/patients/{id}/picture
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpPost("{id:int}/picture")]

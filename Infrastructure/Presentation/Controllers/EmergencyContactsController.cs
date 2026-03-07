@@ -12,6 +12,7 @@ namespace Presentation.Controllers
     public class EmergencyContactsController(IServiceManager _serviceManager) : ControllerBase
     {
         // Add emergency contact for a patient
+        [Authorize(Roles = "SuperAdmin,Receptionist,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpPost]
         [ProducesResponseType(typeof(EmergencyContactResultDto), StatusCodes.Status201Created)]
@@ -29,6 +30,7 @@ namespace Presentation.Controllers
         }
 
         // Get all emergency contacts for a patient
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<EmergencyContactResultDto>), StatusCodes.Status200OK)]
@@ -39,6 +41,7 @@ namespace Presentation.Controllers
         }
 
         // Update emergency contact
+        [Authorize(Roles = "SuperAdmin,Receptionist,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpPut("{contactId:int}")]
         [ProducesResponseType(typeof(EmergencyContactResultDto), StatusCodes.Status200OK)]
@@ -57,6 +60,7 @@ namespace Presentation.Controllers
         }
 
         // Delete emergency contact
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpDelete("{contactId:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

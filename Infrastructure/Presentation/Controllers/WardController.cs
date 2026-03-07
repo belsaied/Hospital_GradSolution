@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.WardBedModule.RoomsDtos;
@@ -11,9 +12,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/wards")]
+    [Authorize]
     public class WardController(IServiceManager _serviceManager) : ControllerBase
     {
         // POST api/wards
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPost]
         [ProducesResponseType(typeof(WardResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -25,6 +28,7 @@ namespace Presentation.Controllers
         }
 
         // GET api/wards
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<WardOccupancySummaryDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllWards()
@@ -33,7 +37,8 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-        // GET api/wards/5
+        // GET api/wards/{id}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(WardWithDetailsResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -43,7 +48,8 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-        // PUT api/wards/5
+        // PUT api/wards/{id}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(WardResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,7 +60,8 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
-        // POST api/wards/5/rooms
+        // POST api/wards/{wardId}/rooms
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPost("{wardId:int}/rooms")]
         [ProducesResponseType(typeof(RoomResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -65,7 +72,8 @@ namespace Presentation.Controllers
             return CreatedAtAction(nameof(GetRoomsInWard), new { wardId }, result);
         }
 
-        // GET api/wards/5/rooms
+        // GET api/wards/{wardId}/rooms
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("{wardId:int}/rooms")]
         [ProducesResponseType(typeof(IEnumerable<RoomResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

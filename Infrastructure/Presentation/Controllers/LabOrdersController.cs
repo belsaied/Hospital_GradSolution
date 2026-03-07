@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.MedicalRecordsDto;
@@ -7,8 +8,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/lab-orders")]
+    [Authorize]
     public class LabOrdersController (IServiceManager _serviceManager) : ControllerBase
     {
+        // PUT /api/lab-orders/{orderId}/status
+        [Authorize(Roles = "SuperAdmin,Nurse,Doctor")]
         [HttpPut("{orderId:int}/status")]
         [ProducesResponseType(typeof(LabOrderResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -17,6 +21,8 @@ namespace Presentation.Controllers
     int orderId, [FromBody] UpdateLabOrderStatusDto dto)
     => Ok(await _serviceManager.LabOrderService.UpdateLabOrderStatusAsync(orderId, dto));
 
+        // POST /api/lab-orders/{orderId}/result
+        [Authorize(Roles = "SuperAdmin,Nurse")]
         [HttpPost("{orderId:int}/result")]
         [ProducesResponseType(typeof(LabResultResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

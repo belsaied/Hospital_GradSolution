@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared;
@@ -12,9 +13,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DoctorsController(IServiceManager _serviceManager) : ControllerBase
     {
         //Post  /api/doctors
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPost]
         [ProducesResponseType(typeof(DoctorResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -27,6 +30,7 @@ namespace Presentation.Controllers
         }
 
         //Get  /api/doctors/{id}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Doctor,Patient")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(DoctorResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -36,6 +40,7 @@ namespace Presentation.Controllers
 
 
         //Put  api/doctors/{id}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(DoctorResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -45,6 +50,7 @@ namespace Presentation.Controllers
 
 
         //Delete /api/doctors/{id} =>  Soft delete
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -57,6 +63,7 @@ namespace Presentation.Controllers
 
 
         //Get  /api/doctors
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [HttpGet]
         [ProducesResponseType(typeof(PaginatedResult<DoctorResultDto>) , StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedResult<DoctorResultDto>>> GetAllDoctors([FromQuery] DoctorSpecificationParameters parameters)
@@ -64,6 +71,7 @@ namespace Presentation.Controllers
 
 
         //Get /api/doctors/{id}/details
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpGet("{id:int}/details")]
         [ProducesResponseType(typeof(DoctorWithDetailsResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -71,6 +79,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.DoctorService.GetDoctorWithDetailsAsync(id));
 
         //Get /api/doctors/department/{deptId}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [HttpGet("department/{deptId:int}")]
         [ProducesResponseType(typeof(IEnumerable<DoctorResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -79,6 +88,7 @@ namespace Presentation.Controllers
 
 
         // GET /api/doctors/available?date=2026-02-23
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [HttpGet("available")]
         [ProducesResponseType(typeof(IEnumerable<DoctorResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<DoctorResultDto>>> GetAvailableDoctors(
@@ -87,6 +97,7 @@ namespace Presentation.Controllers
 
 
         // POST /api/doctors/{id}/qualifications
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpPost("{id:int}/qualifications")]
         [ProducesResponseType(typeof(QualificationResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -99,6 +110,7 @@ namespace Presentation.Controllers
 
 
         // DELETE /api/doctors/{id}/qualifications/{qId}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpDelete("{id:int}/qualifications/{qId:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -109,6 +121,7 @@ namespace Presentation.Controllers
         }
 
         // POST /api/doctors/{id}/schedules
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPost("{id:int}/schedules")]
         [ProducesResponseType(typeof(ScheduleResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -121,6 +134,7 @@ namespace Presentation.Controllers
         }
 
         // GET /api/doctors/{id}/schedules
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet("{id:int}/schedules")]
         [ProducesResponseType(typeof(IEnumerable<ScheduleResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

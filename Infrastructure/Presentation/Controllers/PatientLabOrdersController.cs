@@ -11,6 +11,8 @@ namespace Presentation.Controllers
     [Authorize]
     public class PatientLabOrdersController(IServiceManager _serviceManager) : ControllerBase
     {
+        // GET /api/patients/{patientId}/lab-orders
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<LabOrderResultDto>), StatusCodes.Status200OK)]

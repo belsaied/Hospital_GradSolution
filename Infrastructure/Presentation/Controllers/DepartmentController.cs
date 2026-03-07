@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.DoctorModule.DepartmentDtos;
@@ -10,9 +11,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DepartmentController(IServiceManager _serviceManager)  : ControllerBase
     {
         // POST /api/departments
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPost]
         [ProducesResponseType(typeof(DepartmentResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -23,12 +26,14 @@ namespace Presentation.Controllers
         }
 
         // GET /api/departments
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<DepartmentResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<DepartmentResultDto>>> GetAllDepartments()
             => Ok(await _serviceManager.DepartmentService.GetAllDepartmentAsync());
 
         // GET /api/departments/{id}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(DepartmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -36,6 +41,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.DepartmentService.GetDepartmentByIdAsync(id));
 
         // PUT /api/departments/{id}
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(DepartmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

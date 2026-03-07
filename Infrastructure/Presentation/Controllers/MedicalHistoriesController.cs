@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.PatientModule.Medical_History_Dtos;
@@ -7,9 +8,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/patients/{patientId:int}/medical-histories")]
+    [Authorize]
     public class MedicalHistoriesController (IServiceManager _serviceManager) : ControllerBase
     {
         // Add medical history for a patient
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpPost]
         [ProducesResponseType(typeof(MedicalHistoryResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -24,6 +27,7 @@ namespace Presentation.Controllers
         }
 
         // Get all medical histories for a patient
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<MedicalHistoryResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<MedicalHistoryResultDto>>> GetPatientMedicalHistory(int patientId)
@@ -33,6 +37,7 @@ namespace Presentation.Controllers
         }
 
         // Update medical history
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpPut("{historyId:int}")]
         [ProducesResponseType(typeof(MedicalHistoryResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

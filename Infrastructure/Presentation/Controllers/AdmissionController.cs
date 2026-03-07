@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.WardBedModule.AdmissionDtos;
@@ -10,8 +11,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/admissions")]
+    [Authorize]
     public class AdmissionController(IServiceManager _serviceManager) : ControllerBase
-    {// POST api/admissions
+    {
+        // POST api/admissions
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpPost]
         [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -25,6 +29,7 @@ namespace Presentation.Controllers
         }
 
         // GET api/admissions/5
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -32,12 +37,14 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.AdmissionService.GetAdmissionByIdAsync(id));
 
         // GET api/admissions/active
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("active")]
         [ProducesResponseType(typeof(IEnumerable<AdmissionResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<AdmissionResultDto>>> GetActiveAdmissions()
             => Ok(await _serviceManager.AdmissionService.GetActiveAdmissionsAsync());
 
         // GET api/admissions/patient/3
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("patient/{patientId:int}")]
         [ProducesResponseType(typeof(IEnumerable<AdmissionResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -46,6 +53,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.AdmissionService.GetPatientAdmissionHistoryAsync(patientId));
 
         // PUT api/admissions/5/discharge
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpPut("{id:int}/discharge")]
         [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -55,6 +63,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.AdmissionService.DischargePatientAsync(id, dto));
 
         // POST api/admissions/5/transfer
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse")]
         [HttpPost("{id:int}/transfer")]
         [ProducesResponseType(typeof(AdmissionResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

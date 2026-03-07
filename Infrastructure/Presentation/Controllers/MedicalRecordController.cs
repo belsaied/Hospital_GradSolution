@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstraction.Contracts;
 using Shared;
@@ -9,9 +10,11 @@ namespace Presentation.Controllers
 {
     [ApiController]
     [Route("api/medical-records")]
+    [Authorize]
     public class MedicalRecordController(IServiceManager _serviceManager) : ControllerBase
     {
         // POST /api/medical-records
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpPost]
         [ProducesResponseType(typeof(MedicalRecordResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -25,6 +28,7 @@ namespace Presentation.Controllers
         }
 
         // GET /api/medical-records/{id}
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse,Patient")]
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(MedicalRecordResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -32,6 +36,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.MedicalRecordService.GetMedicalRecordByIdAsync(id));
 
         // PUT /api/medical-records/{id}?requestingDoctorId=1
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(MedicalRecordResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -44,6 +49,7 @@ namespace Presentation.Controllers
                     .UpdateMedicalRecordAsync(id, dto, requestingDoctorId));
 
         // GET /api/medical-records/patient/{patientId}?pageIndex=1&pageSize=10
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpGet("patient/{patientId:int}")]
         [ProducesResponseType(typeof(IEnumerable<MedicalRecordResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -53,6 +59,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.MedicalRecordService.GetPatientMedicalRecordsAsync(patientId , parameters));
 
         // GET /api/medical-records/doctor/{doctorId} ?pageIndex=1&pageSize=10
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpGet("doctor/{doctorId:int}")]
         [ProducesResponseType(typeof(IEnumerable<MedicalRecordResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -62,6 +69,7 @@ namespace Presentation.Controllers
             => Ok(await _serviceManager.MedicalRecordService.GetDoctorMedicalRecordsAsync(doctorId , parameters));
 
         // POST /api/medical-records/{id}/vitals
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpPost("{id:int}/vitals")]
         [ProducesResponseType(typeof(VitalSignResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -73,6 +81,7 @@ namespace Presentation.Controllers
         }
 
         // POST /api/medical-records/{id}/prescriptions
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpPost("{id:int}/prescriptions")]
         [ProducesResponseType(typeof(PrescriptionResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -85,6 +94,7 @@ namespace Presentation.Controllers
         }
 
         // DELETE /api/medical-records/{recordId}/prescriptions/{presId}
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpDelete("{recordId:int}/prescriptions/{presId:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -96,6 +106,7 @@ namespace Presentation.Controllers
         }
 
         // POST /api/medical-records/{id}/lab-orders
+        [Authorize(Roles = "SuperAdmin,Doctor")]
         [HttpPost("{id:int}/lab-orders")]
         [ProducesResponseType(typeof(LabOrderResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
