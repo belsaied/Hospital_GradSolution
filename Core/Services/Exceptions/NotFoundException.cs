@@ -144,4 +144,84 @@
         : ConflictException($"A ward with the name '{name}' already exists.");
     #endregion
 
+    #region BillingModule
+    // ── Inherits NotFoundException (→ HTTP 404) ───────────────────────
+
+    public sealed class InvoiceNotFoundException : NotFoundException
+    {
+        public InvoiceNotFoundException(Guid id)
+            : base($"Invoice with Id '{id}' was not found.")
+        {
+        }
+    }
+
+    public sealed class PaymentNotFoundException : NotFoundException
+    {
+        public PaymentNotFoundException(Guid id)
+            : base($"Payment with Id '{id}' was not found.")
+        {
+        }
+    }
+
+    public sealed class InsuranceClaimNotFoundException : NotFoundException
+    {
+        public InsuranceClaimNotFoundException(Guid invoiceId)
+            : base($"No insurance claim found for invoice '{invoiceId}'.")
+        {
+        }
+    }
+
+    // ── Inherits BusinessRuleException (→ HTTP 422) ───────────────────
+
+    public sealed class InvalidInvoiceStatusTransitionException : BusinessRuleException
+    {
+        public InvalidInvoiceStatusTransitionException(string from, string to)
+            : base($"Cannot transition invoice status from '{from}' to '{to}'.")
+        {
+        }
+    }
+
+    public sealed class InvoiceAlreadyPaidException : BusinessRuleException
+    {
+        public InvoiceAlreadyPaidException(Guid invoiceId)
+            : base($"Invoice '{invoiceId}' is already fully paid. Cancellation is not allowed — initiate a refund instead.")
+        {
+        }
+    }
+
+    public sealed class PaymentExceedsBalanceException : BusinessRuleException
+    {
+        public PaymentExceedsBalanceException(decimal requested, decimal outstanding)
+            : base($"Payment amount {requested:N2} exceeds the outstanding balance of {outstanding:N2}.")
+        {
+        }
+    }
+
+    public sealed class DraftInvoicePaymentException : BusinessRuleException
+    {
+        public DraftInvoicePaymentException(Guid invoiceId)
+            : base($"Cannot record a payment against Draft invoice '{invoiceId}'. Issue the invoice first.")
+        {
+        }
+    }
+
+    public sealed class ClaimNotRejectedException : BusinessRuleException
+    {
+        public ClaimNotRejectedException(Guid claimId)
+            : base($"Claim '{claimId}' cannot be resubmitted because its current status is not 'Rejected'.")
+        {
+        }
+    }
+
+    // ── Inherits ConflictException (→ HTTP 409) ───────────────────────
+
+    public sealed class DuplicateInsuranceClaimException : ConflictException
+    {
+        public DuplicateInsuranceClaimException(Guid invoiceId)
+            : base($"An active insurance claim already exists for invoice '{invoiceId}'.")
+        {
+        }
+    }
+    #endregion
+
 }

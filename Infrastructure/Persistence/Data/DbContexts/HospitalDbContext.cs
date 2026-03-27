@@ -1,4 +1,5 @@
 ﻿using Domain.Models.AppointmentModule;
+using Domain.Models.BillingModule;
 using Domain.Models.DoctorModule;
 using Domain.Models.MedicalRecordModule;
 using Domain.Models.PatientModule;
@@ -51,6 +52,13 @@ namespace Persistence.Data.DbContexts
         public DbSet<Bed> Beds { get; set; }
         public DbSet<Admission> Admissions { get; set; }
         public DbSet<BedTransfer> BedTransfers { get; set; }
+        #endregion
+
+        #region BillingModule
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<InsuranceClaim> InsuranceClaims { get; set; }
+        public DbSet<InvoiceLineItem> InvoiceLineItems { get; set; }
         #endregion
     }
 }
