@@ -9,6 +9,7 @@ using Services.Specifications.BillingModule;
 using Shared.Dtos.BillingModule.Results;
 using Stripe;
 using Invoice = Domain.Models.BillingModule.Invoice;
+using PaymentMethod = Domain.Models.Enums.BillingEnums.PaymentMethod;
 
 namespace Services.Implementations.BillingModule
 {
@@ -57,7 +58,7 @@ namespace Services.Implementations.BillingModule
                 InvoiceId = invoiceId,
                 PatientId = invoice.PatientId,
                 Amount = invoice.OutstandingBalance,
-                PaymentMethod = Domain.Models.Enums.PatientEnums.PaymentMethod.Card,
+                PaymentMethod = PaymentMethod.Card,
                 Status = PaymentStatus.Pending,
                 StripePaymentIntentId = intent.Id,
                 StripeClientSecret = intent.ClientSecret
@@ -88,7 +89,7 @@ namespace Services.Implementations.BillingModule
                 InvoiceId = invoiceId,
                 PatientId = invoice.PatientId,
                 Amount = amount,
-                PaymentMethod = Domain.Models.Enums.PatientEnums.PaymentMethod.Cash,
+                PaymentMethod = PaymentMethod.Cash,
                 Status = PaymentStatus.Succeeded,
                 TransactionReference = $"CASH-{Guid.NewGuid():N}".ToUpperInvariant(),
                 PaidAt = DateTimeOffset.UtcNow
@@ -123,11 +124,11 @@ namespace Services.Implementations.BillingModule
 
             switch (stripeEvent.Type)
             {
-                case Events.PaymentIntentSucceeded:
+                case EventTypes.PaymentIntentSucceeded:
                     await HandleSucceededAsync((PaymentIntent)stripeEvent.Data.Object);
                     break;
 
-                case Events.PaymentIntentPaymentFailed:
+                case EventTypes.PaymentIntentPaymentFailed:
                     await HandleFailedAsync((PaymentIntent)stripeEvent.Data.Object);
                     break;
             }
@@ -183,7 +184,7 @@ namespace Services.Implementations.BillingModule
                     $"Refund amount must be between 0.01 and {payment.Amount:N2}.");
 
             // Issue Stripe refund for card payments
-            if (payment.PaymentMethod == Domain.Models.Enums.PatientEnums.PaymentMethod.Card
+            if (payment.PaymentMethod == Domain.Models.Enums.BillingEnums.PaymentMethod.Card
                 && !string.IsNullOrEmpty(payment.StripePaymentIntentId))
             {
                 StripeConfiguration.ApiKey = _config["StripeSettings:SecretKey"];

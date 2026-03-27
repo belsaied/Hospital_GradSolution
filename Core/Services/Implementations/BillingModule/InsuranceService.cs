@@ -91,7 +91,7 @@ namespace Services.Implementations.BillingModule
                             InvoiceId = claim.InvoiceId,
                             PatientId = claim.PatientId,
                             Amount = approved,
-                            PaymentMethod = Domain.Models.Enums.PatientEnums.PaymentMethod.InsuranceCover,
+                            PaymentMethod = PaymentMethod.InsuranceCover,
                             Status = PaymentStatus.Succeeded,
                             TransactionReference = $"INS-{claimId:N}".ToUpperInvariant(),
                             PaidAt = DateTimeOffset.UtcNow
