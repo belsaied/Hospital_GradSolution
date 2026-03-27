@@ -1,4 +1,5 @@
-﻿using Services.Abstraction.Contracts.WardBedService;
+﻿using Services.Abstraction.Contracts.BillingService;
+using Services.Abstraction.Contracts.WardBedService;
 
 namespace Services.Abstraction.Contracts
 {
@@ -39,6 +40,13 @@ namespace Services.Abstraction.Contracts
         public IAuthService AuthService { get; }
         public IAuditService AuditService { get; }
         public IEmailService EmailService { get; }
+        #endregion
+
+        #region Billing
+        public IInvoiceService InvoiceService { get; }
+        public IPaymentService PaymentService { get; }
+        public IInsuranceService InsuranceService { get; }
+        public IReportingService ReportingService { get; }
         #endregion
 
     }

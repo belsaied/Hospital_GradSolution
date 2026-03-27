@@ -1,5 +1,7 @@
 ﻿using Domain.Contracts;
 using Domain.Models.IdentityModule;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using Persistence.Data.DbContexts;
 using Persistence.Data.Identity;
 using Persistence.Implementations;
+using QuestPDF.Infrastructure;
+using Services.Implementations.BillingModule;
 using Shared.Common;
 using System.Text;
 
@@ -28,6 +32,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IdentityDataSeeding>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAuditRepository, AuditRepository>();
+            QuestPDF.Settings.License = LicenseType.Community;
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 8;
@@ -40,6 +45,30 @@ namespace Hospital_Grad.API.Extensions
               .AddDefaultTokenProviders();
             services.ValidateJwt(configuration);
             services.Configure<EmailOptions>(configuration.GetSection("EmailOptions"));
+            // QuestPDF License
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            // Hangfire
+            services.AddHangfire(config => config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    new SqlServerStorageOptions
+                    {
+                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                        QueuePollInterval = TimeSpan.Zero,
+                        UseRecommendedIsolationLevel = true,
+                        DisableGlobalLocks = true
+                    }));
+
+            services.AddHangfireServer();
+
+            // Hangfire Background Job classes
+            services.AddScoped<MarkOverdueInvoicesJob>();
+            services.AddScoped<InvoiceExpiryNotificationJob>();
             return services;
             }
         public static IServiceCollection ValidateJwt(this IServiceCollection services, IConfiguration configuration)
@@ -69,5 +98,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddAuthorization();
             return services;
         }
+
+
     }
 }

@@ -3,9 +3,11 @@ using Presentation.Authorization;
 using Presentation.Hubs;
 using Services;
 using Services.Abstraction.Contracts;
+using Services.Abstraction.Contracts.BillingService;
 using Services.Abstraction.Contracts.WardBedService;
 using Services.Implementations;
 using Services.Implementations.AppointmentModule;
+using Services.Implementations.BillingModule;
 using Services.Implementations.DoctorModule;
 using Services.Implementations.MedicalRecordModule;
 using Services.Implementations.PatientModule;
@@ -47,6 +49,14 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IAuditService, AuditService>();
             services.AddScoped<IEmailService, EmailService>();
+            //  --------------------------------------------------------------------------
+            // Billing Services
+            services.AddScoped<IInvoiceService, InvoiceService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IInsuranceService, InsuranceService>();
+            services.AddScoped<IInvoicePdfGenerator, InvoicePdfGenerator>();
+            services.AddScoped<IReportingService,ReportingService>();
+            services.AddScoped<IInvoiceNotifier, InvoiceNotifier>();
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
                 () => provider.GetRequiredService<IPatientService>()
@@ -93,7 +103,12 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<Func<IAuthService>>(p => () => p.GetRequiredService<IAuthService>());
             services.AddScoped<Func<IAuditService>>(p => () => p.GetRequiredService<IAuditService>());
             services.AddScoped<Func<IEmailService>>(p => () => p.GetRequiredService<IEmailService>());
-
+            services.AddScoped<Func<IInvoiceService>>(p => () => p.GetRequiredService<IInvoiceService>());
+            services.AddScoped<Func<IPaymentService>>(p => () => p.GetRequiredService<IPaymentService>());
+            services.AddScoped<Func<IInsuranceService>>(p => () => p.GetRequiredService<IInsuranceService>());
+            services.AddScoped<Func<IReportingService>>(p => () => p.GetRequiredService<IReportingService>());
+            services.AddScoped<Func<IInvoicePdfGenerator>>(p => () => p.GetRequiredService<IInvoicePdfGenerator>());
+            services.AddScoped<Func<IInvoiceNotifier>>(p => () => p.GetRequiredService<IInvoiceNotifier>());
             services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
             return services;
         }

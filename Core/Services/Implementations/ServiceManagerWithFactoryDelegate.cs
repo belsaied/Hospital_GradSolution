@@ -1,4 +1,5 @@
 ﻿using Services.Abstraction.Contracts;
+using Services.Abstraction.Contracts.BillingService;
 using Services.Abstraction.Contracts.WardBedService;
 
 namespace Services.Implementations
@@ -24,7 +25,12 @@ namespace Services.Implementations
         Func<IAdmissionService> _admissionService,
         Func<IAuthService> _authService,
         Func<IAuditService> _auditService,
-        Func<IEmailService> _emailService
+        Func<IEmailService> _emailService,
+        // Billing Module
+        Func<IInvoiceService> _invoiceService,
+        Func<IPaymentService> _paymentService,
+        Func<IInsuranceService> _insuranceService,
+        Func<IReportingService> _reportingService
         ) : IServiceManager
     {
         //Patient Module
@@ -59,5 +65,11 @@ namespace Services.Implementations
         public IAuthService AuthService => _authService.Invoke();
         public IAuditService AuditService => _auditService.Invoke();
         public IEmailService EmailService => _emailService.Invoke();
+
+        // Billing Module
+        public IInvoiceService InvoiceService => _invoiceService.Invoke();
+        public IPaymentService PaymentService => _paymentService.Invoke();
+        public IInsuranceService InsuranceService => _insuranceService.Invoke();
+        public IReportingService ReportingService => _reportingService.Invoke();
     }
 }

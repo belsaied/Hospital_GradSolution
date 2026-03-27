@@ -125,8 +125,7 @@ namespace Services.Implementations.BillingModule
                 {
                     col.Item().Text("Invoice Status").Bold().FontSize(9).FontColor(AccentColor);
 
-                    // ← Fix CS0172: resolve colour to a string variable first, then pass to FontColor()
-                    var statusColor = invoice.Status == InvoiceStatus.Paid
+                    string statusColor = invoice.Status == InvoiceStatus.Paid
                         ? Colors.Green.Darken2
                         : PrimaryColor;
 
@@ -166,7 +165,7 @@ namespace Services.Implementations.BillingModule
                 var isOdd = false;
                 foreach (var item in invoice.LineItems)
                 {
-                    var bg = isOdd ? Colors.White : LightGray;
+                    string bg = isOdd ? Colors.White : LightGray;
                     isOdd = !isOdd;
 
                     table.Cell().Background(bg).Padding(5).Text(item.Description).FontSize(9);

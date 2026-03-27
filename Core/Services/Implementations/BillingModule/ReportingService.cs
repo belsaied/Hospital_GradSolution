@@ -4,6 +4,7 @@ using Domain.Contracts;
 using Domain.Models.BillingModule;
 using Domain.Models.Enums.BillingEnums;
 using Domain.Models.PatientModule;
+using Services.Abstraction.Contracts.BillingService;
 using Services.Specifications.BillingModule;
 using Services.Specifications.PatientModule;
 using Shared.Dtos.BillingModule.Results;
@@ -11,7 +12,7 @@ using Shared.Parameters;
 
 namespace Services.Implementations.BillingModule
 {
-    public sealed class ReportingService (IUnitOfWork _unitOfWork , IMapper _mapper) 
+    public sealed class ReportingService (IUnitOfWork _unitOfWork , IMapper _mapper) : IReportingService
     {
         // ── Revenue Report ────────────────────────────────────────────────────
 

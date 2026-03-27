@@ -1,3 +1,4 @@
+using Hangfire;
 using Hospital_Grad.API.Extensions;
 using Presentation.Hubs;
 
@@ -12,11 +13,16 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddCoreServices(builder.Configuration);
 
 var app = builder.Build();
+app.UseHangfireDashboard("/hangfire");
 // Seed the database with WebApplication extension method
 await app.SeedDatabaseAsync();
 // Use global exception handling middleware
 app.UseExceptionHandlingMiddlewares();
-
+app.Use(async (ctx, next) =>
+{
+    ctx.Request.EnableBuffering();
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -27,6 +33,7 @@ app.UseStaticFiles();
 app.UseCors("DevPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+app.RegisterBillingRecurringJobs();
 app.UseWebSockets();
 app.MapControllers();
 app.MapHub<AppointmentHub>("/hubs/appointments");

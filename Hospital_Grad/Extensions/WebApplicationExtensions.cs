@@ -1,6 +1,8 @@
 ﻿using Domain.Contracts;
+using Hangfire;
 using Hospital_Grad.API.MiddleWares;
 using Persistence.Data.Identity;
+using Services.Implementations.BillingModule;
 
 namespace Hospital_Grad.API.Extensions
 {
@@ -25,6 +27,22 @@ namespace Hospital_Grad.API.Extensions
             app.MapOpenApi();
             app.UseSwagger();
             app.UseSwaggerUI();
+            return app;
+        }
+        public static WebApplication RegisterBillingRecurringJobs(this WebApplication app)
+        {
+            RecurringJob.AddOrUpdate<MarkOverdueInvoicesJob>(
+                recurringJobId: "billing-mark-overdue",
+                methodCall: j => j.ExecuteAsync(),
+                cronExpression: "5 0 * * *",
+                options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+            RecurringJob.AddOrUpdate<InvoiceExpiryNotificationJob>(
+                recurringJobId: "billing-expiry-reminders",
+                methodCall: j => j.ExecuteAsync(),
+                cronExpression: "0 8 * * *",
+                options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
             return app;
         }
     }
