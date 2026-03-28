@@ -18,6 +18,7 @@ app.UseHangfireDashboard("/hangfire");
 await app.SeedDatabaseAsync();
 // Use global exception handling middleware
 app.UseExceptionHandlingMiddlewares();
+
 app.Use(async (ctx, next) =>
 {
     ctx.Request.EnableBuffering();
