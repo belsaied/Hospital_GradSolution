@@ -56,6 +56,7 @@ namespace Services.Abstraction.Contracts
         public INotificationLogService NotificationLogService { get; }
         public IAdminNotificationLogService AdminNotificationLogService { get; }
         #endregion
+        
 
         #region Cash
         ICacheService CacheService { get; }
