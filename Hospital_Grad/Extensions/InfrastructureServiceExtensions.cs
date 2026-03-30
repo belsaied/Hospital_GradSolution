@@ -12,6 +12,7 @@ using Persistence.Implementations;
 using QuestPDF.Infrastructure;
 using Services.Implementations.BillingModule;
 using Shared.Common;
+using StackExchange.Redis;
 using System.Text;
 
 namespace Hospital_Grad.API.Extensions
@@ -31,6 +32,11 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IDataSeeding, DataSeeding>();
             services.AddScoped<IdentityDataSeeding>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
+             ConnectionMultiplexer.Connect(
+            configuration.GetConnectionString("RedisConnection")!));
+
+            services.AddScoped<ICacheRepository, CacheRepository>();
             services.AddScoped<IAuditRepository, AuditRepository>();
             QuestPDF.Settings.License = LicenseType.Community;
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>

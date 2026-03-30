@@ -19,6 +19,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddSignalR();
             services.AddEndpointsApiExplorer();
             services.AddOpenApi();
+            services.AddMemoryCache();
             services.AddSwaggerGen(options =>
             {
                 options.UseInlineDefinitionsForEnums();

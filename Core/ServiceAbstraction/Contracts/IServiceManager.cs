@@ -49,5 +49,8 @@ namespace Services.Abstraction.Contracts
         public IReportingService ReportingService { get; }
         #endregion
 
+        #region Cache
+        public ICacheService CacheService { get; }
+        #endregion
     }
 }

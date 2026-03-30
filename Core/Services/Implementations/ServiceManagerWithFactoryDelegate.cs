@@ -30,7 +30,8 @@ namespace Services.Implementations
         Func<IInvoiceService> _invoiceService,
         Func<IPaymentService> _paymentService,
         Func<IInsuranceService> _insuranceService,
-        Func<IReportingService> _reportingService
+        Func<IReportingService> _reportingService,
+        Func<ICacheService> _cacheService
         ) : IServiceManager
     {
         //Patient Module
@@ -71,5 +72,7 @@ namespace Services.Implementations
         public IPaymentService PaymentService => _paymentService.Invoke();
         public IInsuranceService InsuranceService => _insuranceService.Invoke();
         public IReportingService ReportingService => _reportingService.Invoke();
+
+        public ICacheService CacheService => _cacheService.Invoke();
     }
 }

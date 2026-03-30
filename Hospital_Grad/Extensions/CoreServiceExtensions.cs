@@ -57,6 +57,9 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IInvoicePdfGenerator, InvoicePdfGenerator>();
             services.AddScoped<IReportingService,ReportingService>();
             services.AddScoped<IInvoiceNotifier, InvoiceNotifier>();
+            // --------------------------------------------------------------------------
+            // Redis Caching
+            services.AddScoped<ICacheService, CacheService>();
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
                 () => provider.GetRequiredService<IPatientService>()
@@ -109,6 +112,8 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<Func<IReportingService>>(p => () => p.GetRequiredService<IReportingService>());
             services.AddScoped<Func<IInvoicePdfGenerator>>(p => () => p.GetRequiredService<IInvoicePdfGenerator>());
             services.AddScoped<Func<IInvoiceNotifier>>(p => () => p.GetRequiredService<IInvoiceNotifier>());
+            services.AddScoped<Func<ICacheService>>(p => () => p.GetRequiredService<ICacheService>());
+
             services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
             return services;
         }
