@@ -1,16 +1,20 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
+using Domain.Models.DoctorModule;
 using Domain.Models.Enums.MedicalRecordEnums;
 using Domain.Models.MedicalRecordModule;
 using Domain.Models.PatientModule;
+using Microsoft.Extensions.Logging;
 using Services.Abstraction.Contracts;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Exceptions;
 using Services.Specifications.MedicalRecordModule;
 using Shared.Dtos.MedicalRecordsDto;
+using Shared.Dtos.NotificationDtos.Events;
 
 namespace Services.Implementations.MedicalRecordModule
 {
-    public class LabOrderService (IUnitOfWork _unitOfWork, IMapper _mapper) : ILabOrderService
+    public class LabOrderService (IUnitOfWork _unitOfWork, IMapper _mapper,ILogger<LabOrderService> _logger ,INotificationService _notificationService) : ILabOrderService
     {
         public async Task<LabOrderResultDto> CreateLabOrderAsync(int medicalRecordId, CreateLabOrderDto dto)
         {
@@ -89,7 +93,32 @@ namespace Services.Implementations.MedicalRecordModule
             orderRepo.Update(order);
 
             await _unitOfWork.SaveChangesAsync();
+            
+            if (dto.IsAbnormal)
+            {
+                try
+                {
+                    // Fetch doctor info for the notification
+                    var doctor = await _unitOfWork.GetRepository<Doctor, int>().GetByIdAsync(order.DoctorId);
+                    var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(order.PatientId);
 
+                    await _notificationService.SendAbnormalLabResultAsync(new AbnormalLabResultEvent
+                    {
+                        PatientId = order.PatientId,
+                        PatientName = patient is not null ? $"{patient.FirstName} {patient.LastName}" : "Unknown",
+                        OrderingDoctorId = order.DoctorId,
+                        DoctorEmail = doctor?.Email ?? string.Empty,
+                        DoctorName = doctor is not null ? $"{doctor.FirstName} {doctor.LastName}" : "Unknown",
+                        TestName = order.TestName,
+                        ResultValue = dto.ResultText,
+                        NormalRange = dto.NormalRange
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[Notification] Failed to send AbnormalLabResult for order {Id}", order.Id);
+                }
+            }
             return _mapper.Map<LabResultResultDto>(result);
         }
     }

@@ -3,21 +3,22 @@ using Domain.Contracts;
 using Domain.Models.BillingModule;
 using Domain.Models.Enums.BillingEnums;
 using Domain.Models.PatientModule;
-using Services.Abstraction.Contracts;
+using Microsoft.Extensions.Logging;
 using Services.Abstraction.Contracts.BillingService;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Exceptions;
 using Services.Specifications.BillingModule;
 using Services.Specifications.PatientModule;
 using Shared;
-using Shared.Common;
 using Shared.Dtos.BillingModule.Requests;
 using Shared.Dtos.BillingModule.Results;
+using Shared.Dtos.NotificationDtos.Events;
 using Shared.Parameters;
 
 namespace Services.Implementations.BillingModule
 {
     public sealed class InvoiceService (IUnitOfWork _unitOfWork
-        , IMapper _mapper , IInvoicePdfGenerator _pdfGenerator , ICacheService _cacheService) : IInvoiceService
+        , IMapper _mapper , IInvoicePdfGenerator _pdfGenerator,ILogger<InvoiceService> _logger ,INotificationService _notificationService) : IInvoiceService
     {
         // ── Create ────────────────────────────────────────────────────────────
 
@@ -128,8 +129,7 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
+
             var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(invoice.PatientId);
             return await BuildDetailDtoAsync(invoice, $"{patient?.FirstName} {patient?.LastName}");
         }
@@ -150,8 +150,6 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
         }
 
         // ── Status Transitions ────────────────────────────────────────────────
@@ -180,9 +178,31 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
+
+
             var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(invoice.PatientId);
+            try
+            {
+                byte[]? pdfBytes = null;
+                try { pdfBytes = _pdfGenerator.Generate(invoice, patient?.FirstName + " " + patient?.LastName, patient?.Email ?? ""); }
+                catch { /* pdf failure must not block notification */ }
+
+                await _notificationService.SendInvoiceIssuedAsync(new InvoiceNotificationEvent
+                {
+                    InvoiceId = invoice.Id,
+                    InvoiceNumber = invoice.InvoiceNumber,
+                    PatientId = invoice.PatientId,
+                    PatientEmail = patient?.Email ?? string.Empty,
+                    PatientName = $"{patient.FirstName} {patient?.LastName}",
+                    TotalAmount = invoice.TotalAmount,
+                    DueDate = invoice.DueDate,
+                    PdfBytes = pdfBytes
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Notification] Failed to send InvoiceIssued for {Id}", invoice.Id);
+            }
             return await BuildDetailDtoAsync(invoice, $"{patient?.FirstName} {patient?.LastName}");
         }
 
@@ -208,8 +228,6 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
         }
 
         // ── PDF ───────────────────────────────────────────────────────────────

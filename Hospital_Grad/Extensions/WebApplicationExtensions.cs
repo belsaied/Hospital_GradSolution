@@ -3,6 +3,7 @@ using Hangfire;
 using Hospital_Grad.API.MiddleWares;
 using Persistence.Data.Identity;
 using Services.Implementations.BillingModule;
+using Services.Implementations.NotificationModule.Jobs;
 
 namespace Hospital_Grad.API.Extensions
 {
@@ -41,6 +42,29 @@ namespace Hospital_Grad.API.Extensions
                 recurringJobId: "billing-expiry-reminders",
                 methodCall: j => j.ExecuteAsync(),
                 cronExpression: "0 8 * * *",
+                options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+            // ── Notification Jobs ────────────────────────────────────────────
+
+            // Daily 08:00 UTC — appointment reminders for tomorrow's confirmed appointments
+            RecurringJob.AddOrUpdate<AppointmentReminderJob>(
+                recurringJobId: "notification-appointment-reminder",
+                methodCall: j => j.ExecuteAsync(),
+                cronExpression: "0 8 * * *",
+                options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+            // Daily 09:00 UTC — prescription expiry warnings (7 days ahead)
+            RecurringJob.AddOrUpdate<PrescriptionExpiryWarningJob>(
+                recurringJobId: "notification-prescription-expiry",
+                methodCall: j => j.ExecuteAsync(),
+                cronExpression: "0 9 * * *",
+                options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+            // Daily 10:00 UTC — overdue invoice reminders
+            RecurringJob.AddOrUpdate<InvoiceOverdueReminderJob>(
+                recurringJobId: "notification-invoice-overdue",
+                methodCall: j => j.ExecuteAsync(),
+                cronExpression: "0 10 * * *",
                 options: new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
 
             return app;

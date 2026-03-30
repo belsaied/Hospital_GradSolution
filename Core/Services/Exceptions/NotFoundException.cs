@@ -224,6 +224,30 @@
     }
     #endregion
 
+    #region Notification Module
+    public sealed class NotificationNotFoundException : NotFoundException
+    {
+        public NotificationNotFoundException(Guid id)
+            : base($"Notification with Id '{id}' was not found.") { }
+    }
 
+    public sealed class NotificationPreferenceNotFoundException : NotFoundException
+    {
+        public NotificationPreferenceNotFoundException(string userId, string type, string channel)
+            : base($"Notification preference for user '{userId}', type '{type}', channel '{channel}' was not found.") { }
+    }
+
+    public sealed class TemplateNotFoundException : NotFoundException
+    {
+        public TemplateNotFoundException(string type, string channel)
+            : base($"No active notification template found for type '{type}' on channel '{channel}'.") { }
+    }
+
+    public sealed class NotificationChannelUnavailableException : BusinessRuleException
+    {
+        public NotificationChannelUnavailableException(string channel)
+            : base($"Recipient has no valid contact information to receive notifications via '{channel}'.") { }
+    }
+    #endregion
 
 }

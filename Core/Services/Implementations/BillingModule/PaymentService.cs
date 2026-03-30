@@ -2,13 +2,15 @@
 using Domain.Contracts;
 using Domain.Models.BillingModule;
 using Domain.Models.Enums.BillingEnums;
+using Domain.Models.PatientModule;
 using Microsoft.Extensions.Configuration;
-using Services.Abstraction.Contracts;
+using Microsoft.Extensions.Logging;
 using Services.Abstraction.Contracts.BillingService;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Exceptions;
 using Services.Specifications.BillingModule;
-using Shared.Common;
 using Shared.Dtos.BillingModule.Results;
+using Shared.Dtos.NotificationDtos.Events;
 using Stripe;
 using Invoice = Domain.Models.BillingModule.Invoice;
 using PaymentMethod = Domain.Models.Enums.BillingEnums.PaymentMethod;
@@ -16,8 +18,7 @@ using PaymentMethod = Domain.Models.Enums.BillingEnums.PaymentMethod;
 namespace Services.Implementations.BillingModule
 {
     public sealed class PaymentService (IUnitOfWork _unitOfWork
-        , IMapper _mapper , IConfiguration _config
-        , ICacheService _cacheService) : IPaymentService
+        , IMapper _mapper, INotificationService _notificationService, IConfiguration _config,ILogger<PaymentService> _logger) : IPaymentService
     {
         // Initialise Stripe once per service lifetime — same pattern as E-Commerce project
         static PaymentService()
@@ -102,9 +103,25 @@ namespace Services.Implementations.BillingModule
             ApplyPaymentToInvoice(invoice, amount);
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
-            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
+            try
+            {
+                var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(payment.PatientId);
+                await _notificationService.SendPaymentReceivedAsync(new PaymentNotificationEvent
+                {
+                    PaymentId = payment.Id,
+                    InvoiceId = payment.InvoiceId,
+                    InvoiceNumber = invoice.InvoiceNumber,
+                    PatientId = payment.PatientId,
+                    PatientEmail = patient?.Email ?? string.Empty,
+                    PatientName = patient is not null ? $"{patient.FirstName} {patient.LastName}" : "Unknown",
+                    AmountPaid = payment.Amount,
+                    PaidAt = payment.PaidAt ?? DateTimeOffset.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Notification] Failed to send PaymentReceived for payment {Id}", payment.Id);
+            }
             return _mapper.Map<PaymentResultDto>(payment);
         }
 
@@ -156,9 +173,26 @@ namespace Services.Implementations.BillingModule
             _unitOfWork.GetRepository<Payment, Guid>().Update(payment);
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
-            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
+
+            try
+            {
+                var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(payment.PatientId);
+                await _notificationService.SendPaymentReceivedAsync(new PaymentNotificationEvent
+                {
+                    PaymentId = payment.Id,
+                    InvoiceId = payment.InvoiceId,
+                    InvoiceNumber = invoice.InvoiceNumber,
+                    PatientId = payment.PatientId,
+                    PatientEmail = patient?.Email ?? string.Empty,
+                    PatientName = patient is not null ? $"{patient.FirstName} {patient.LastName}" : "Unknown",
+                    AmountPaid = payment.Amount,
+                    PaidAt = payment.PaidAt ?? DateTimeOffset.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Notification] Failed to send PaymentReceived for payment {Id}", payment.Id);
+            }
         }
 
         private async Task HandleFailedAsync(PaymentIntent intent)
@@ -172,9 +206,6 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Payment, Guid>().Update(payment);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
-            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
         }
 
         // ── Refund ────────────────────────────────────────────────────────────
@@ -221,9 +252,7 @@ namespace Services.Implementations.BillingModule
             _unitOfWork.GetRepository<Payment, Guid>().Update(payment);
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
-            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
-            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
+
             return _mapper.Map<PaymentResultDto>(payment);
         }
 

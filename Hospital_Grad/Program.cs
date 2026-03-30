@@ -1,5 +1,6 @@
 using Hangfire;
 using Hospital_Grad.API.Extensions;
+using Hospital_Grad.API.Factories;
 using Presentation.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,4 +40,5 @@ app.UseWebSockets();
 app.MapControllers();
 app.MapHub<AppointmentHub>("/hubs/appointments");
 app.MapHub<WardHub>("/hubs/beds");
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.Run();

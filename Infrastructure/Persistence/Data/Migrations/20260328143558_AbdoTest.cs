@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Persistence.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class ReMakeBelal : Migration
+    public partial class AbdoTest : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -67,6 +67,34 @@ namespace Persistence.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Invoices",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    InvoiceNumber = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    PatientId = table.Column<int>(type: "int", nullable: false),
+                    AppointmentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    SubTotal = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    DiscountAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    DiscountPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    TaxPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
+                    TaxAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    PaidAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    OutstandingBalance = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    DueDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    IssuedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    PaidAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Invoices", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Patients",
                 columns: table => new
                 {
@@ -110,6 +138,91 @@ namespace Persistence.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Wards", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InsuranceClaims",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    InvoiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PatientId = table.Column<int>(type: "int", nullable: false),
+                    InsuranceProvider = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    PolicyNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    MembershipNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ClaimStatus = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
+                    ClaimedAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    ApprovedAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    PatientCopayment = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    RejectionReason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    SubmittedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    ResolvedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    ExternalClaimReference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InsuranceClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InsuranceClaims_Invoices_InvoiceId",
+                        column: x => x.InvoiceId,
+                        principalTable: "Invoices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "InvoiceLineItems",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    InvoiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    LineItemType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ReferenceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(18,4)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InvoiceLineItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_InvoiceLineItems_Invoices_InvoiceId",
+                        column: x => x.InvoiceId,
+                        principalTable: "Invoices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    InvoiceId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PatientId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    PaymentMethod = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    StripePaymentIntentId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    StripeClientSecret = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    TransactionReference = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    FailureReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PaidAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    RefundedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    RefundReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Payments_Invoices_InvoiceId",
+                        column: x => x.InvoiceId,
+                        principalTable: "Invoices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -765,6 +878,23 @@ namespace Persistence.Data.Migrations
                 column: "PatientId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_InsuranceClaims_InvoiceId",
+                table: "InsuranceClaims",
+                column: "InvoiceId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InvoiceLineItems_InvoiceId",
+                table: "InvoiceLineItems",
+                column: "InvoiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Invoices_InvoiceNumber",
+                table: "Invoices",
+                column: "InvoiceNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LabOrders_DoctorId",
                 table: "LabOrders",
                 column: "DoctorId");
@@ -827,6 +957,18 @@ namespace Persistence.Data.Migrations
                 table: "Patients",
                 column: "NationalId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_InvoiceId",
+                table: "Payments",
+                column: "InvoiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_StripePaymentIntentId",
+                table: "Payments",
+                column: "StripePaymentIntentId",
+                unique: true,
+                filter: "[StripePaymentIntentId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Prescriptions_DoctorId",
@@ -916,6 +1058,12 @@ namespace Persistence.Data.Migrations
                 name: "EmergencyContacts");
 
             migrationBuilder.DropTable(
+                name: "InsuranceClaims");
+
+            migrationBuilder.DropTable(
+                name: "InvoiceLineItems");
+
+            migrationBuilder.DropTable(
                 name: "LabResults");
 
             migrationBuilder.DropTable(
@@ -923,6 +1071,9 @@ namespace Persistence.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "PatientMedicalHistories");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "Prescriptions");
@@ -935,6 +1086,9 @@ namespace Persistence.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "LabOrders");
+
+            migrationBuilder.DropTable(
+                name: "Invoices");
 
             migrationBuilder.DropTable(
                 name: "Beds");

@@ -1,19 +1,24 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Persistence.Senders;
 using Presentation.Authorization;
 using Presentation.Hubs;
 using Services;
 using Services.Abstraction.Contracts;
 using Services.Abstraction.Contracts.BillingService;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Abstraction.Contracts.WardBedService;
 using Services.Implementations;
 using Services.Implementations.AppointmentModule;
 using Services.Implementations.BillingModule;
 using Services.Implementations.DoctorModule;
 using Services.Implementations.MedicalRecordModule;
+using Services.Implementations.NotificationModule;
+using Services.Implementations.NotificationModule.Jobs;
 using Services.Implementations.PatientModule;
 using Services.Implementations.UserManagementModule;
 using Services.Implementations.WardBedModule;
 using Shared.Common;
+using Shared.Common.NotificationSettings;
 
 namespace Hospital_Grad.API.Extensions
 {
@@ -29,23 +34,27 @@ namespace Hospital_Grad.API.Extensions
             services.AddAuthorizationBuilder()
                 .AddPolicy("PatientOwnership", policy =>
                     policy.Requirements.Add(new PatientOwnershipRequirement()));
-            // Register all services
+            // Patient Module
             services.AddScoped<IPatientService, PatientService>();
             services.AddScoped<IAllergyService, AllergyService>();
             services.AddScoped<IMedicalHistoryService, MedicalHistoryService>();
             services.AddScoped<IEmergencyContactService, EmergencyContactService>();
+            //Doctor Module
             services.AddScoped<IDoctorService, DoctorService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
             services.AddScoped<IAppointmentService, AppointmentService>();
             services.AddScoped<IAppointmentNotifier, AppointmentNotifier>();
+            //Medical Record Module 
             services.AddScoped<IMedicalRecordService, MedicalRecordService>();
             services.AddScoped<IVitalSignService, VitalSignService>();
             services.AddScoped<IPrescriptionService, PrescriptionService>();
             services.AddScoped<ILabOrderService, LabOrderService>();
+            //WardBed Module
             services.AddScoped<IWardService, WardService>();
             services.AddScoped<IBedService, BedService>();
             services.AddScoped<IAdmissionService, AdmissionService>();
             services.AddScoped<IBedNotifier, BedNotifier>();
+            //Identity
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IAuditService, AuditService>();
             services.AddScoped<IEmailService, EmailService>();
@@ -57,9 +66,26 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IInvoicePdfGenerator, InvoicePdfGenerator>();
             services.AddScoped<IReportingService,ReportingService>();
             services.AddScoped<IInvoiceNotifier, InvoiceNotifier>();
-            // --------------------------------------------------------------------------
-            // Redis Caching
-            services.AddScoped<ICacheService, CacheService>();
+           
+            //Notification Module
+            var emailProvider = configuration["NotificationEmailSettings:Provider"] ?? "Smtp";
+            if (emailProvider.Equals("SendGrid", StringComparison.OrdinalIgnoreCase))
+                services.AddScoped<IEmailSender, SendGridEmailSender>();
+            else
+                services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+            services.AddScoped<ISmsSender, TwilioSmsSender>();
+            services.AddScoped<INotificationPushSender, NotificationPushSender>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
+            services.AddScoped<INotificationLogService, NotificationLogService>();
+            services.AddScoped<IAdminNotificationLogService, AdminNotificationLogService>();
+
+            // Notification Hangfire Jobs (transient — fresh DbContext per run)
+            services.AddTransient<AppointmentReminderJob>();
+            services.AddTransient<PrescriptionExpiryWarningJob>();
+            services.AddTransient<InvoiceOverdueReminderJob>();
+
             // Register factory delegates
             services.AddScoped<Func<IPatientService>>(provider =>
                 () => provider.GetRequiredService<IPatientService>()
@@ -112,9 +138,17 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<Func<IReportingService>>(p => () => p.GetRequiredService<IReportingService>());
             services.AddScoped<Func<IInvoicePdfGenerator>>(p => () => p.GetRequiredService<IInvoicePdfGenerator>());
             services.AddScoped<Func<IInvoiceNotifier>>(p => () => p.GetRequiredService<IInvoiceNotifier>());
-            services.AddScoped<Func<ICacheService>>(p => () => p.GetRequiredService<ICacheService>());
-
+            // Notification Factory Delegates
+            services.AddScoped<Func<INotificationService>>(p => () => p.GetRequiredService<INotificationService>());
+            services.AddScoped<Func<INotificationPreferenceService>>(p => () => p.GetRequiredService<INotificationPreferenceService>());
+            services.AddScoped<Func<INotificationLogService>>(p => () => p.GetRequiredService<INotificationLogService>());
+            services.AddScoped<Func<IAdminNotificationLogService>>(p => () => p.GetRequiredService<IAdminNotificationLogService>());
+            //Config
             services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
+            services.Configure<NotificationEmailSettings>(
+               configuration.GetSection("NotificationEmailSettings"));
+            services.Configure<TwilioSettings>(
+                configuration.GetSection("TwilioSettings"));
             return services;
         }
     }

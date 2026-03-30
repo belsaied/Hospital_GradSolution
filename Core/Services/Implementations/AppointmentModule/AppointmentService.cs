@@ -6,13 +6,15 @@ using Domain.Models.Enums.AppointmentEnums;
 using Domain.Models.Enums.DoctorEnums;
 using Domain.Models.Enums.PatientEnums;
 using Domain.Models.PatientModule;
+using Microsoft.Extensions.Logging;
 using Services.Abstraction.Contracts;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Exceptions;
 using Services.Specifications.AppointmentModule;
 using Services.Specifications.DoctorModule;
 using Shared;
-using Shared.Common;
 using Shared.Dtos.AppointmentModule;
+using Shared.Dtos.NotificationDtos.Events;
 using Shared.Parameters;
 
 namespace Services.Implementations.AppointmentModule
@@ -20,8 +22,9 @@ namespace Services.Implementations.AppointmentModule
     public class AppointmentService(
         IUnitOfWork _unitOfWork,
         IMapper _mapper,
-        IAppointmentNotifier _notifier
-        ) : IAppointmentService
+        IAppointmentNotifier _notifier,
+        INotificationService _notificationService,
+        ILogger<AppointmentService> _logger) : IAppointmentService
     {
         public async Task<AppointmentResultDto> BookAppointmentAsync(CreateAppointmentDto dto)
         {
@@ -136,6 +139,28 @@ namespace Services.Implementations.AppointmentModule
                 startTime = apt.StartTime.ToString("HH:mm")
             });
 
+            //Add Notification Service here
+            try
+            {
+                await _notificationService.SendAppointmentConfirmedAsync(new AppointmentNotificationEvent
+                {
+                    PatientId = apt.PatientId,
+                    PatientEmail = apt.Patient.Email,
+                    PatientPhone = apt.Patient.Phone,
+                    PatientName = $"{apt.Patient.FirstName} {apt.Patient.LastName}",
+                    DoctorId = apt.DoctorId,
+                    DoctorEmail = apt.Doctor.Email,
+                    DoctorName = $"{apt.Doctor.FirstName} {apt.Doctor.LastName}",
+                    AppointmentDate = apt.AppointmentDate,
+                    StartTime = apt.StartTime,
+                    ConfirmationNumber = apt.ConfirmationNumber
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Notification] Failed to send AppointmentConfirmed for {Id}", apt.Id);
+            }
+
             var updated = await aptRepo.GetByIdAsync(new AppointmentWithDetailsSpecification(id));
             return _mapper.Map<AppointmentResultDto>(updated!);
         }
@@ -195,6 +220,28 @@ namespace Services.Implementations.AppointmentModule
                 date = apt.AppointmentDate.ToString("yyyy-MM-dd"),
                 startTime = apt.StartTime.ToString("HH:mm")
             };
+
+            try
+            {
+                await _notificationService.SendAppointmentCancelledAsync(new AppointmentNotificationEvent
+                {
+                    PatientId = apt.PatientId,
+                    PatientEmail = apt.Patient.Email,
+                    PatientPhone = apt.Patient.Phone,
+                    PatientName = $"{apt.Patient.FirstName} {apt.Patient.LastName}",
+                    DoctorId = apt.DoctorId,
+                    DoctorEmail = apt.Doctor.Email,
+                    DoctorName = $"{apt.Doctor.FirstName} {apt.Doctor.LastName}",
+                    AppointmentDate = apt.AppointmentDate,
+                    StartTime = apt.StartTime,
+                    ConfirmationNumber = apt.ConfirmationNumber
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Notification] Failed to send AppointmentCancelled for {Id}", apt.Id);
+            }
+
 
             await _notifier.NotifyDoctorAsync(apt.DoctorId, "AppointmentCancelled", payload);
             await _notifier.NotifyPatientAsync(apt.PatientId, "AppointmentCancelled", payload);

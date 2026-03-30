@@ -1,6 +1,8 @@
 ﻿using Hospital_Grad.API.Factories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Services.Abstraction.Contracts.NotificationService;
+using Services.Implementations.NotificationModule;
 
 namespace Hospital_Grad.API.Extensions
 {
@@ -39,6 +41,22 @@ namespace Hospital_Grad.API.Extensions
             {
                 options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
             });
+
+            services.AddScoped<NotificationService>();
+            services.AddScoped<INotificationService>(p =>
+            p.GetRequiredService<NotificationService>());
+
+            services.AddScoped<Func<INotificationService>>(p =>
+            () => p.GetRequiredService<INotificationService>());
+            services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
+            
+            services.AddScoped<Func<INotificationPreferenceService>>(p =>
+            () => p.GetRequiredService<INotificationPreferenceService>());
+            services.AddScoped<INotificationLogService, NotificationLogService>();
+            
+            services.AddScoped<Func<INotificationLogService>>(p =>
+                () => p.GetRequiredService<INotificationLogService>());
+
             return services;
         }
     }

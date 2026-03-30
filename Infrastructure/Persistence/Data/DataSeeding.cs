@@ -2,6 +2,7 @@
 using Domain.Models.AppointmentModule;
 using Domain.Models.DoctorModule;
 using Domain.Models.MedicalRecordModule;
+using Domain.Models.NotificationModule;
 using Domain.Models.PatientModule;
 using Domain.Models.WardBedModule;
 using Microsoft.EntityFrameworkCore;
@@ -212,6 +213,18 @@ public class DataSeeding(HospitalDbContext _dbContext)
             }
             #endregion
             await _dbContext.SaveChangesAsync();
+
+            #region Notification Module 
+            if (!await _dbContext.NotificationTemplates.AnyAsync())
+            {
+                var templates = await LoadJsonAsync<NotificationTemplate>(
+                    Path.Combine(basePath, "notification_templates.json"), jsonOptions);
+                if (templates?.Any() == true)
+                    await _dbContext.NotificationTemplates.AddRangeAsync(templates);
+            }
+            #endregion
+            await _dbContext.SaveChangesAsync();
+
         }
         catch (Exception ex)
         {

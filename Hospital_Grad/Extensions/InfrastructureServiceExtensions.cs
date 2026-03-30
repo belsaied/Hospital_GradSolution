@@ -9,8 +9,11 @@ using Microsoft.IdentityModel.Tokens;
 using Persistence.Data.DbContexts;
 using Persistence.Data.Identity;
 using Persistence.Implementations;
+using Persistence.Senders;
 using QuestPDF.Infrastructure;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Implementations.BillingModule;
+using Services.Implementations.NotificationModule.Jobs;
 using Shared.Common;
 using StackExchange.Redis;
 using System.Text;
@@ -54,6 +57,25 @@ namespace Hospital_Grad.API.Extensions
             // QuestPDF License
             QuestPDF.Settings.License = LicenseType.Community;
 
+
+            // ── Email sender — switched via appsettings EmailSettings:Provider ─
+            var emailProvider = configuration["EmailSettings:Provider"] ?? "Smtp";
+            if (emailProvider.Equals("SendGrid", StringComparison.OrdinalIgnoreCase))
+                services.AddScoped<IEmailSender, SendGridEmailSender>();
+            else
+                services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+
+            // ── SMS sender — Twilio 
+            services.AddScoped<ISmsSender, TwilioSmsSender>();
+
+            // ── Push sender — SignalR wrapper 
+            services.AddScoped<INotificationPushSender, NotificationPushSender>();
+
+            // ── SignalR 
+            services.AddSignalR();
+
+
             // Hangfire
             services.AddHangfire(config => config
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
@@ -75,6 +97,11 @@ namespace Hospital_Grad.API.Extensions
             // Hangfire Background Job classes
             services.AddScoped<MarkOverdueInvoicesJob>();
             services.AddScoped<InvoiceExpiryNotificationJob>();
+            // Notification Jobs
+            services.AddTransient<AppointmentReminderJob>();
+            services.AddTransient<PrescriptionExpiryWarningJob>();
+            services.AddTransient<InvoiceOverdueReminderJob>();
+
             return services;
             }
         public static IServiceCollection ValidateJwt(this IServiceCollection services, IConfiguration configuration)

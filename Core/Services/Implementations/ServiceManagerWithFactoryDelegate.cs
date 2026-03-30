@@ -1,5 +1,6 @@
 ﻿using Services.Abstraction.Contracts;
 using Services.Abstraction.Contracts.BillingService;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Abstraction.Contracts.WardBedService;
 
 namespace Services.Implementations
@@ -31,7 +32,11 @@ namespace Services.Implementations
         Func<IPaymentService> _paymentService,
         Func<IInsuranceService> _insuranceService,
         Func<IReportingService> _reportingService,
-        Func<ICacheService> _cacheService
+       //Notification Module
+        Func<INotificationService> _notificationService,
+        Func<INotificationPreferenceService> _notificationPreferenceService,
+        Func<INotificationLogService> _notificationLogService,
+         Func<IAdminNotificationLogService> _adminNotificationLogService
         ) : IServiceManager
     {
         //Patient Module
@@ -73,6 +78,10 @@ namespace Services.Implementations
         public IInsuranceService InsuranceService => _insuranceService.Invoke();
         public IReportingService ReportingService => _reportingService.Invoke();
 
-        public ICacheService CacheService => _cacheService.Invoke();
+        // Notification Module
+        public INotificationService NotificationService => _notificationService.Invoke();
+        public INotificationPreferenceService NotificationPreferenceService => _notificationPreferenceService.Invoke();
+        public INotificationLogService NotificationLogService => _notificationLogService.Invoke();
+        public IAdminNotificationLogService AdminNotificationLogService => _adminNotificationLogService.Invoke();
     }
 }

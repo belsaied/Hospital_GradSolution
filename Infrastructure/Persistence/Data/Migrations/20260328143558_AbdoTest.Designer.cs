@@ -12,15 +12,15 @@ using Persistence.Data.DbContexts;
 namespace Persistence.Data.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    [Migration("20260306052647_ReMakeBelal")]
-    partial class ReMakeBelal
+    [Migration("20260328143558_AbdoTest")]
+    partial class AbdoTest
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -98,6 +98,246 @@ namespace Persistence.Data.Migrations
                         .HasDatabaseName("IX_Appointments_DoctorId_Date");
 
                     b.ToTable("Appointments", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.BillingModule.InsuranceClaim", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ApprovedAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("ClaimStatus")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
+
+                    b.Property<decimal>("ClaimedAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("ExternalClaimReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("InsuranceProvider")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("MembershipNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<decimal>("PatientCopayment")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PolicyNumber")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId")
+                        .IsUnique();
+
+                    b.ToTable("InsuranceClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.BillingModule.Invoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AppointmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTimeOffset?>("IssuedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("OutstandingBalance")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("TaxAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("TaxPercent")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique();
+
+                    b.ToTable("Invoices", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.BillingModule.InvoiceLineItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LineItemType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("InvoiceLineItems", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.BillingModule.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RefundReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset?>("RefundedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("StripeClientSecret")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("TransactionReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("StripePaymentIntentId")
+                        .IsUnique()
+                        .HasFilter("[StripePaymentIntentId] IS NOT NULL");
+
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.DoctorModule.Department", b =>
@@ -1224,6 +1464,39 @@ namespace Persistence.Data.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("Domain.Models.BillingModule.InsuranceClaim", b =>
+                {
+                    b.HasOne("Domain.Models.BillingModule.Invoice", "Invoice")
+                        .WithOne("InsuranceClaim")
+                        .HasForeignKey("Domain.Models.BillingModule.InsuranceClaim", "InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("Domain.Models.BillingModule.InvoiceLineItem", b =>
+                {
+                    b.HasOne("Domain.Models.BillingModule.Invoice", "Invoice")
+                        .WithMany("LineItems")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("Domain.Models.BillingModule.Payment", b =>
+                {
+                    b.HasOne("Domain.Models.BillingModule.Invoice", "Invoice")
+                        .WithMany("Payments")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+                });
+
             modelBuilder.Entity("Domain.Models.DoctorModule.Department", b =>
                 {
                     b.HasOne("Domain.Models.DoctorModule.Doctor", "HeadDoctor")
@@ -1523,6 +1796,15 @@ namespace Persistence.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Ward");
+                });
+
+            modelBuilder.Entity("Domain.Models.BillingModule.Invoice", b =>
+                {
+                    b.Navigation("InsuranceClaim");
+
+                    b.Navigation("LineItems");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("Domain.Models.DoctorModule.Department", b =>

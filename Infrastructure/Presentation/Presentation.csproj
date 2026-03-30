@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\ServiceAbstraction\Services.Abstraction.csproj" />
+    <ProjectReference Include="..\..\Core\Services\Services.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

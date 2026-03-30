@@ -1,4 +1,5 @@
 ﻿using Services.Abstraction.Contracts.BillingService;
+using Services.Abstraction.Contracts.NotificationService;
 using Services.Abstraction.Contracts.WardBedService;
 
 namespace Services.Abstraction.Contracts
@@ -49,8 +50,12 @@ namespace Services.Abstraction.Contracts
         public IReportingService ReportingService { get; }
         #endregion
 
-        #region Cache
-        public ICacheService CacheService { get; }
+        #region Notification
+        public INotificationService NotificationService { get; }
+        public INotificationPreferenceService NotificationPreferenceService { get; }
+        public INotificationLogService NotificationLogService { get; }
+        public IAdminNotificationLogService AdminNotificationLogService { get; }
         #endregion
+
     }
 }

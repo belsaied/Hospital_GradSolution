@@ -2,6 +2,7 @@
 using Domain.Models.BillingModule;
 using Domain.Models.DoctorModule;
 using Domain.Models.MedicalRecordModule;
+using Domain.Models.NotificationModule;
 using Domain.Models.PatientModule;
 using Domain.Models.WardBedModule;
 using Microsoft.EntityFrameworkCore;
@@ -60,5 +61,12 @@ namespace Persistence.Data.DbContexts
         public DbSet<InsuranceClaim> InsuranceClaims { get; set; }
         public DbSet<InvoiceLineItem> InvoiceLineItems { get; set; }
         #endregion
+       
+        #region Notification Module
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<NotificationPreference> NotificationPreferences { get; set; }
+        public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+        #endregion
+
     }
 }
