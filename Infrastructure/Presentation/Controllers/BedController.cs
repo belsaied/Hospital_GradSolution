@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.WardBedModule.BedDtos;
 using System;
@@ -18,6 +19,7 @@ namespace Presentation.Controllers
         // GET api/beds/available?wardType=ICU&bedType=Standard
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("available")]
+        [RedisCache(durationInSeconds: 60)]
         [ProducesResponseType(typeof(IEnumerable<BedAvailabilityResultDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAvailableBeds(
             [FromQuery] string? wardType = null,

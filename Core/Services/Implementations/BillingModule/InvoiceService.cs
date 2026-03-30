@@ -3,11 +3,13 @@ using Domain.Contracts;
 using Domain.Models.BillingModule;
 using Domain.Models.Enums.BillingEnums;
 using Domain.Models.PatientModule;
+using Services.Abstraction.Contracts;
 using Services.Abstraction.Contracts.BillingService;
 using Services.Exceptions;
 using Services.Specifications.BillingModule;
 using Services.Specifications.PatientModule;
 using Shared;
+using Shared.Common;
 using Shared.Dtos.BillingModule.Requests;
 using Shared.Dtos.BillingModule.Results;
 using Shared.Parameters;
@@ -15,7 +17,7 @@ using Shared.Parameters;
 namespace Services.Implementations.BillingModule
 {
     public sealed class InvoiceService (IUnitOfWork _unitOfWork
-        , IMapper _mapper , IInvoicePdfGenerator _pdfGenerator) : IInvoiceService
+        , IMapper _mapper , IInvoicePdfGenerator _pdfGenerator , ICacheService _cacheService) : IInvoiceService
     {
         // ── Create ────────────────────────────────────────────────────────────
 
@@ -126,7 +128,8 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
             var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(invoice.PatientId);
             return await BuildDetailDtoAsync(invoice, $"{patient?.FirstName} {patient?.LastName}");
         }
@@ -147,6 +150,8 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
         }
 
         // ── Status Transitions ────────────────────────────────────────────────
@@ -175,7 +180,8 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
             var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(invoice.PatientId);
             return await BuildDetailDtoAsync(invoice, $"{patient?.FirstName} {patient?.LastName}");
         }
@@ -202,6 +208,8 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(invoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(invoice.PatientId));
         }
 
         // ── PDF ───────────────────────────────────────────────────────────────

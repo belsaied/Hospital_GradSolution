@@ -5,11 +5,13 @@ using Domain.Models.PatientModule;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Services.Specifications.PatientModule;
+using Shared.Common;
 using Shared.Dtos.PatientModule.AllergyDtos;
 
 namespace Services.Implementations.PatientModule
 {
-    public class AllergyService(IUnitOfWork _unitOfWork, IMapper _mapper) : IAllergyService
+    public class AllergyService(IUnitOfWork _unitOfWork
+        , IMapper _mapper , ICacheService _cacheService) : IAllergyService
     {
         public async Task<AllergyResultDto> AddAllergyAsync(int patientId, CreateAllergyDto allergyDto)
         {
@@ -37,7 +39,8 @@ namespace Services.Implementations.PatientModule
 
             // STEP 4: Save changes
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.PatientAllergies(patientId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientDetails(patientId));
             // STEP 5: Return result DTO
             return _mapper.Map<AllergyResultDto>(allergy);
         }
@@ -79,7 +82,8 @@ namespace Services.Implementations.PatientModule
 
             // STEP 4: Save changes
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.PatientAllergies(patientId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientDetails(patientId));
             return true;
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts.BillingService;
 using Shared;
 using Shared.Dtos.BillingModule.Requests;
@@ -27,6 +28,7 @@ namespace Presentation.Controllers.BillingModule
 
         // GET /api/invoices/{id}
         [HttpGet("{id:guid}")]
+        [RedisCache(durationInSeconds: 300)]
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Receptionist,Patient")]
         [ProducesResponseType(typeof(InvoiceResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -35,6 +37,7 @@ namespace Presentation.Controllers.BillingModule
 
         // GET /api/invoices
         [HttpGet]
+        [RedisCache(durationInSeconds: 300)]
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [ProducesResponseType(typeof(PaginatedResult<InvoiceSummaryResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedResult<InvoiceSummaryResultDto>>> GetAllInvoices(
@@ -43,6 +46,7 @@ namespace Presentation.Controllers.BillingModule
 
         // GET /api/invoices/patient/{patientId}
         [HttpGet("patient/{patientId:int}")]
+        [RedisCache(durationInSeconds: 300)]
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Receptionist")]
         [ProducesResponseType(typeof(IEnumerable<InvoiceSummaryResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

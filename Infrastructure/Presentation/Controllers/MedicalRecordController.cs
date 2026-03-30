@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared;
 using Shared.Dtos.MedicalRecordsDto;
@@ -30,6 +31,7 @@ namespace Presentation.Controllers
         // GET /api/medical-records/{id}
         [Authorize(Roles = "SuperAdmin,Doctor,Nurse,Patient")]
         [HttpGet("{id:int}")]
+        [RedisCache(durationInSeconds: 600)]
         [ProducesResponseType(typeof(MedicalRecordResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<MedicalRecordResultDto>> GetMedicalRecordById(int id)
@@ -51,6 +53,7 @@ namespace Presentation.Controllers
         // GET /api/medical-records/patient/{patientId}?pageIndex=1&pageSize=10
         [Authorize(Roles = "SuperAdmin,Doctor,Nurse")]
         [HttpGet("patient/{patientId:int}")]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(IEnumerable<MedicalRecordResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PaginatedResult<MedicalRecordResultDto>>> GetPatientMedicalRecords(
@@ -61,6 +64,7 @@ namespace Presentation.Controllers
         // GET /api/medical-records/doctor/{doctorId} ?pageIndex=1&pageSize=10
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpGet("doctor/{doctorId:int}")]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(IEnumerable<MedicalRecordResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PaginatedResult<MedicalRecordResultDto>>> GetDoctorMedicalRecords(

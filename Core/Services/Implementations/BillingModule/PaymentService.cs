@@ -3,9 +3,11 @@ using Domain.Contracts;
 using Domain.Models.BillingModule;
 using Domain.Models.Enums.BillingEnums;
 using Microsoft.Extensions.Configuration;
+using Services.Abstraction.Contracts;
 using Services.Abstraction.Contracts.BillingService;
 using Services.Exceptions;
 using Services.Specifications.BillingModule;
+using Shared.Common;
 using Shared.Dtos.BillingModule.Results;
 using Stripe;
 using Invoice = Domain.Models.BillingModule.Invoice;
@@ -14,7 +16,8 @@ using PaymentMethod = Domain.Models.Enums.BillingEnums.PaymentMethod;
 namespace Services.Implementations.BillingModule
 {
     public sealed class PaymentService (IUnitOfWork _unitOfWork
-        , IMapper _mapper , IConfiguration _config) : IPaymentService
+        , IMapper _mapper , IConfiguration _config
+        , ICacheService _cacheService) : IPaymentService
     {
         // Initialise Stripe once per service lifetime — same pattern as E-Commerce project
         static PaymentService()
@@ -99,7 +102,9 @@ namespace Services.Implementations.BillingModule
             ApplyPaymentToInvoice(invoice, amount);
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
+            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
             return _mapper.Map<PaymentResultDto>(payment);
         }
 
@@ -151,6 +156,9 @@ namespace Services.Implementations.BillingModule
             _unitOfWork.GetRepository<Payment, Guid>().Update(payment);
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
+            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
         }
 
         private async Task HandleFailedAsync(PaymentIntent intent)
@@ -164,6 +172,9 @@ namespace Services.Implementations.BillingModule
 
             _unitOfWork.GetRepository<Payment, Guid>().Update(payment);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
+            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
         }
 
         // ── Refund ────────────────────────────────────────────────────────────
@@ -210,7 +221,9 @@ namespace Services.Implementations.BillingModule
             _unitOfWork.GetRepository<Payment, Guid>().Update(payment);
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.Invoice(payment.InvoiceId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientInvoices(payment.PatientId));
+            await _cacheService.RemoveAsync(CacheKeys.OutstandingInvoicesReport);
             return _mapper.Map<PaymentResultDto>(payment);
         }
 

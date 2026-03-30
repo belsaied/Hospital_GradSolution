@@ -11,6 +11,7 @@ using Services.Exceptions;
 using Services.Specifications.AppointmentModule;
 using Services.Specifications.DoctorModule;
 using Shared;
+using Shared.Common;
 using Shared.Dtos.AppointmentModule;
 using Shared.Parameters;
 
@@ -19,7 +20,8 @@ namespace Services.Implementations.AppointmentModule
     public class AppointmentService(
         IUnitOfWork _unitOfWork,
         IMapper _mapper,
-        IAppointmentNotifier _notifier) : IAppointmentService
+        IAppointmentNotifier _notifier
+        ) : IAppointmentService
     {
         public async Task<AppointmentResultDto> BookAppointmentAsync(CreateAppointmentDto dto)
         {

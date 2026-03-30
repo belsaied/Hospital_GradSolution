@@ -7,11 +7,12 @@ using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Services.Specifications.MedicalRecordModule;
 using Services.Specifications.PatientModule;
+using Shared.Common;
 using Shared.Dtos.MedicalRecordsDto;
 
 namespace Services.Implementations.MedicalRecordModule
 {
-    public class PrescriptionService (IUnitOfWork _unitOfWork, IMapper _mapper) : IPrescriptionService
+    public class PrescriptionService (IUnitOfWork _unitOfWork, IMapper _mapper, ICacheService _cacheService) : IPrescriptionService
     {
         public async Task<PrescriptionResultDto> AddPrescriptionAsync(int medicalRecordId, CreatePrescriptionDto dto)
         {
@@ -48,7 +49,9 @@ namespace Services.Implementations.MedicalRecordModule
             var prescRepo = _unitOfWork.GetRepository<Prescription, int>();
             await prescRepo.AddAsync(prescription);
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.PatientPrescriptions(record.PatientId));
+            await _cacheService.RemoveAsync(CacheKeys.PatientActivePrescriptions(record.PatientId));
+            await _cacheService.RemoveAsync(CacheKeys.MedicalRecord(medicalRecordId));
             return _mapper.Map<PrescriptionResultDto>(prescription);
         }
 

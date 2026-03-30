@@ -9,12 +9,13 @@ using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Services.Specifications.MedicalRecordModule;
 using Shared;
+using Shared.Common;
 using Shared.Dtos.MedicalRecordsDto;
 using Shared.Parameters;
 
 namespace Services.Implementations.MedicalRecordModule
 {
-    public class MedicalRecordService (IUnitOfWork _unitOfWork , IMapper _mapper) : IMedicalRecordService
+    public class MedicalRecordService (IUnitOfWork _unitOfWork , IMapper _mapper,ICacheService _cacheService) : IMedicalRecordService
     {
         public async Task<MedicalRecordResultDto> CreateMedicalRecordAsync(CreateMedicalRecordDto dto)
         {
@@ -89,7 +90,7 @@ namespace Services.Implementations.MedicalRecordModule
 
             recordRepo.Update(record);
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.MedicalRecord(id));
             var updated = await recordRepo.GetByIdAsync(new MedicalRecordWithDetailsSpecification(id));
             return _mapper.Map<MedicalRecordResultDto>(updated!);
         }

@@ -6,12 +6,14 @@ using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Services.Specifications.PatientModule;
 using Shared;
+using Shared.Common;
 using Shared.Dtos.PatientModule.PatientDtos;
 using Shared.Parameters;
 
 namespace Services.Implementations.PatientModule
 {
-    public class PatientService(IUnitOfWork _unitOfWork , IMapper _mapper) : IPatientService
+    public class PatientService(IUnitOfWork _unitOfWork 
+        , IMapper _mapper , ICacheService _cacheService) : IPatientService
     {
         public async Task<bool> DeactivatePatientAsync(int id)
         {
@@ -32,6 +34,8 @@ namespace Services.Implementations.PatientModule
             patient.Status = PatientStatus.Inactive;
             patientRepository.Update(patient);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync(CacheKeys.Patient(id));
+            await _cacheService.RemoveAsync(CacheKeys.PatientDetails(id));
             return true;      // successfully deactivated
         }
 
@@ -126,7 +130,8 @@ namespace Services.Implementations.PatientModule
             // STEP 6: Save changes to database
             // This executes the UPDATE statement
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.Patient(id));
+            await _cacheService.RemoveAsync(CacheKeys.PatientDetails(id));
             // STEP 7: Return the updated patient as DTO
             return _mapper.Map<PatientResultDto>(patient);
         }

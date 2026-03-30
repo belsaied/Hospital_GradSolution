@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.PatientModule.AllergyDtos;
 
@@ -30,6 +31,7 @@ namespace Presentation.Controllers
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpGet]
+        [RedisCache(durationInSeconds: 900)]
         [ProducesResponseType(typeof(IEnumerable<AllergyResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<AllergyResultDto>>> GetPatientAllergies(int patientId)
         {

@@ -200,6 +200,7 @@ namespace Services.Implementations.DoctorModule
             await scheduleRepo.AddAsync(schedule);
             await _unitOfWork.SaveChangesAsync();
             await _cacheService.RemoveAsync(CacheKeys.DoctorSchedule(doctorId));
+            await _cacheService.RemoveAsync(CacheKeys.DoctorDetails(doctorId));
             return _mapper.Map<ScheduleResultDto>(schedule);
 
         }

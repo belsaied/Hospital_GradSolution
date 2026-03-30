@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared;
 using Shared.Dtos.AppointmentModule;
@@ -30,6 +31,7 @@ namespace Presentation.Controllers
         // GET /api/appointments/{id}
         [Authorize(Roles = "SuperAdmin,Doctor,Patient")]
         [HttpGet("{id:int}")]
+        [RedisCache]
         [ProducesResponseType(typeof(AppointmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AppointmentResultDto>> GetAppointmentById(int id)
@@ -38,6 +40,7 @@ namespace Presentation.Controllers
         // GET /api/appointments
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet]
+        [RedisCache]
         [ProducesResponseType(typeof(PaginatedResult<AppointmentResultDto>),
             StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedResult<AppointmentResultDto>>>
@@ -48,6 +51,7 @@ namespace Presentation.Controllers
         // GET /api/appointments/patient/{patientId}
         [Authorize(Roles = "SuperAdmin,Doctor,Nurse,Receptionist,Patient")]
         [HttpGet("patient/{patientId:int}")]
+        [RedisCache]
         [ProducesResponseType(typeof(IEnumerable<AppointmentResultDto>),
             StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,6 +63,7 @@ namespace Presentation.Controllers
         // GET /api/appointments/doctor/{doctorId}?date=2026-03-10
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse")]
         [HttpGet("doctor/{doctorId:int}")]
+        [RedisCache]
         [ProducesResponseType(typeof(IEnumerable<AppointmentResultDto>),
             StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -70,6 +75,7 @@ namespace Presentation.Controllers
         // GET /api/appointments/available-slots?doctorId=1&date=2026-03-10
         [Authorize(Roles = "SuperAdmin,Receptionist,Patient")]
         [HttpGet("available-slots")]
+        [RedisCache]
         [ProducesResponseType(typeof(IEnumerable<AvailableSlotDto>),
             StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<AvailableSlotDto>>>

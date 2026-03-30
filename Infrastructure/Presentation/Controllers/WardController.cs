@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.WardBedModule.RoomsDtos;
 using Shared.Dtos.WardBedModule.WardDtos;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Presentation.Controllers
 {
@@ -30,6 +28,7 @@ namespace Presentation.Controllers
         // GET api/wards
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet]
+        [RedisCache(durationInSeconds: 60)]
         [ProducesResponseType(typeof(IEnumerable<WardOccupancySummaryDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllWards()
         {
@@ -40,6 +39,7 @@ namespace Presentation.Controllers
         // GET api/wards/{id}
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("{id:int}")]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(WardWithDetailsResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetWardById(int id)
@@ -75,6 +75,7 @@ namespace Presentation.Controllers
         // GET api/wards/{wardId}/rooms
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist")]
         [HttpGet("{wardId:int}/rooms")]
+        [RedisCache]
         [ProducesResponseType(typeof(IEnumerable<RoomResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetRoomsInWard(int wardId)

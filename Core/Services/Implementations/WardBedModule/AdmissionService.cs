@@ -6,9 +6,11 @@ using Domain.Models.Enums.PatientEnums;
 using Domain.Models.Enums.WardBedEnums;
 using Domain.Models.PatientModule;
 using Domain.Models.WardBedModule;
+using Services.Abstraction.Contracts;
 using Services.Abstraction.Contracts.WardBedService;
 using Services.Exceptions;
 using Services.Specifications.WardBedModule;
+using Shared.Common;
 using Shared.Dtos.WardBedModule.AdmissionDtos;
 using System;
 using System.Collections.Generic;
@@ -16,7 +18,10 @@ using System.Text;
 
 namespace Services.Implementations.WardBedModule
 {
-    public class AdmissionService( IUnitOfWork _unitOfWork,  IMapper _mapper, IBedNotifier _notifier) : IAdmissionService
+    public class AdmissionService( IUnitOfWork _unitOfWork
+        ,  IMapper _mapper,
+        IBedNotifier _notifier,
+        ICacheService _cacheService) : IAdmissionService
     {
         public async Task<AdmissionResultDto> AdmitPatientAsync(CreateAdmissionDto dto)
         {
@@ -72,7 +77,9 @@ namespace Services.Implementations.WardBedModule
             bedRepo.Update(bed);
 
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.WardOccupancy);
+            await _cacheService.RemoveAsync(CacheKeys.AvailableBeds(null, null));
+            await _cacheService.RemoveAsync(CacheKeys.RoomBeds(bed.RoomId));
             // 7. SignalR: BRD event name is "BedOccupied"
             await _notifier.NotifyDashboardAsync("BedOccupied", new
             {
@@ -144,7 +151,9 @@ namespace Services.Implementations.WardBedModule
             }
 
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.WardOccupancy);
+            await _cacheService.RemoveAsync(CacheKeys.AvailableBeds(null, null));
+            await _cacheService.RemoveAsync(CacheKeys.RoomBeds(bed.RoomId));
             // SignalR: BRD event : BedReleased
             await _notifier.NotifyDashboardAsync("BedReleased", new
             {
@@ -212,7 +221,6 @@ namespace Services.Implementations.WardBedModule
             bedRepo.Update(newBed);
 
             await _unitOfWork.SaveChangesAsync();
-
             // SignalR: BRD event :BedTransferred
             await _notifier.NotifyDashboardAsync("BedTransferred", new
             {
