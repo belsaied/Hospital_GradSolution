@@ -36,7 +36,9 @@ namespace Services.Implementations
         Func<INotificationService> _notificationService,
         Func<INotificationPreferenceService> _notificationPreferenceService,
         Func<INotificationLogService> _notificationLogService,
-         Func<IAdminNotificationLogService> _adminNotificationLogService
+        Func<IAdminNotificationLogService> _adminNotificationLogService,
+         //Cash
+        Func<ICacheService> _cacheService
         ) : IServiceManager
     {
         //Patient Module
@@ -83,5 +85,8 @@ namespace Services.Implementations
         public INotificationPreferenceService NotificationPreferenceService => _notificationPreferenceService.Invoke();
         public INotificationLogService NotificationLogService => _notificationLogService.Invoke();
         public IAdminNotificationLogService AdminNotificationLogService => _adminNotificationLogService.Invoke();
+
+        //Cashing
+        public ICacheService CacheService => _cacheService.Invoke();
     }
 }
