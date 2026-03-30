@@ -58,5 +58,8 @@ namespace Services.Abstraction.Contracts
         #endregion
         
 
+        #region Cash
+        ICacheService CacheService { get; }
+        #endregion
     }
 }

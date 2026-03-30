@@ -81,6 +81,8 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<INotificationLogService, NotificationLogService>();
             services.AddScoped<IAdminNotificationLogService, AdminNotificationLogService>();
 
+            //Cach
+            services.AddScoped<ICacheService, CacheService>();
             // Notification Hangfire Jobs (transient — fresh DbContext per run)
             services.AddTransient<AppointmentReminderJob>();
             services.AddTransient<PrescriptionExpiryWarningJob>();
@@ -143,6 +145,10 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<Func<INotificationPreferenceService>>(p => () => p.GetRequiredService<INotificationPreferenceService>());
             services.AddScoped<Func<INotificationLogService>>(p => () => p.GetRequiredService<INotificationLogService>());
             services.AddScoped<Func<IAdminNotificationLogService>>(p => () => p.GetRequiredService<IAdminNotificationLogService>());
+
+            //Cach
+            services.AddScoped<Func<ICacheService>>(p => () => p.GetRequiredService<ICacheService>());
+
             //Config
             services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
             services.Configure<NotificationEmailSettings>(

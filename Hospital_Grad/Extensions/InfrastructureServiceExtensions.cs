@@ -102,6 +102,14 @@ namespace Hospital_Grad.API.Extensions
             services.AddTransient<PrescriptionExpiryWarningJob>();
             services.AddTransient<InvoiceOverdueReminderJob>();
 
+            //Cach
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = configuration.GetConnectionString("Redis");
+            });
+
+            services.AddScoped<ICacheRepository, CacheRepository>();
+
             return services;
             }
         public static IServiceCollection ValidateJwt(this IServiceCollection services, IConfiguration configuration)
