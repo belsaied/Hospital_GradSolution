@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared.Dtos.DoctorModule.DepartmentDtos;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Presentation.Controllers
 {
@@ -28,6 +26,7 @@ namespace Presentation.Controllers
         // GET /api/departments
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(IEnumerable<DepartmentResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<DepartmentResultDto>>> GetAllDepartments()
             => Ok(await _serviceManager.DepartmentService.GetAllDepartmentAsync());
@@ -35,6 +34,7 @@ namespace Presentation.Controllers
         // GET /api/departments/{id}
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet("{id:int}")]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(DepartmentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DepartmentResultDto>> GetDepartmentById(int id)

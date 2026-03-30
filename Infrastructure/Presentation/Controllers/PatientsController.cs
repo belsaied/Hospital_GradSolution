@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared;
 using Shared.Dtos.PatientModule.PatientDtos;
 using Shared.Parameters;
-using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -27,6 +27,7 @@ namespace Presentation.Controllers
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse,Receptionist,Patient")]
         [Authorize(Policy = "PatientOwnership")]
         [HttpGet("{id:int}")]
+        [RedisCache(durationInSeconds: 600)]
         [ProducesResponseType(typeof(PatientResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PatientResultDto>> GetPatientById(int id)
@@ -59,6 +60,7 @@ namespace Presentation.Controllers
         // GET /api/patients
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Nurse")]
         [HttpGet]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(PaginatedResult<PatientResultDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedResult<PatientResultDto>>> GetAllPatients(
             [FromQuery] PatientSpecificationParameters parameters)
@@ -70,6 +72,7 @@ namespace Presentation.Controllers
         // GET api/patients/{id}/details — single patient with full nested data
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor,Nurse")]
         [HttpGet("{id:int}/details")]
+        [RedisCache(durationInSeconds: 600)]
         [ProducesResponseType(typeof(PatientWithDetailsResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PatientWithDetailsResultDto>> GetPatientWithDetails(int id)

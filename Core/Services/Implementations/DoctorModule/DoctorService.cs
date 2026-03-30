@@ -6,15 +6,14 @@ using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Services.Specifications.DoctorModule;
 using Shared;
+using Shared.Common;
 using Shared.Dtos.DoctorModule.DoctorDtos;
 using Shared.Parameters;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Services.Implementations.DoctorModule
 {
-    public class DoctorService(IUnitOfWork _unitOfWork , IMapper _mapper) : IDoctorService
+    public class DoctorService(IUnitOfWork _unitOfWork 
+        , IMapper _mapper , ICacheService _cacheService) : IDoctorService
     {
         public async Task<DoctorResultDto> RegisterDoctorAsync(CreateDoctorDto dto)
         {
@@ -42,7 +41,8 @@ namespace Services.Implementations.DoctorModule
 
             await doctorRepo.AddAsync(doctor);
             await _unitOfWork.SaveChangesAsync();
-
+            // Cache Invalidation
+            await _cacheService.RemoveAsync(CacheKeys.DoctorsByDepartment(dto.DepartmentId));
             // Reload with Department لأن الـ mapper محتاج DepartmentName
             var saved = await doctorRepo.GetByIdAsync(new DoctorWithDetailsSpecification(doctor.Id));
             return _mapper.Map<DoctorResultDto>(saved);
@@ -81,7 +81,10 @@ namespace Services.Implementations.DoctorModule
 
             doctorRepo.Update(doctor);
             await _unitOfWork.SaveChangesAsync();
-
+            // Cache Invalidation
+            await _cacheService.RemoveAsync(CacheKeys.Doctor(id));
+            await _cacheService.RemoveAsync(CacheKeys.DoctorDetails(id));
+            await _cacheService.RemoveAsync(CacheKeys.DoctorsByDepartment(doctor.DepartmentId));
             var updated = await doctorRepo.GetByIdAsync(new DoctorWithDetailsSpecification(id));
             return _mapper.Map<DoctorResultDto>(updated!);
 
@@ -98,7 +101,10 @@ namespace Services.Implementations.DoctorModule
             doctor.Status =DoctorStatus.Inactive;
             doctorRepo.Update(doctor);
             await _unitOfWork.SaveChangesAsync();
-
+            // Cache Invalidation
+            await _cacheService.RemoveAsync(CacheKeys.Doctor(id));
+            await _cacheService.RemoveAsync(CacheKeys.DoctorDetails(id));
+            await _cacheService.RemoveAsync(CacheKeys.DoctorsByDepartment(doctor.DepartmentId));
             return true; 
         }
         public async Task<PaginatedResult<DoctorResultDto>> GetAllDoctorsAsync(DoctorSpecificationParameters parameters)
@@ -142,7 +148,8 @@ namespace Services.Implementations.DoctorModule
             var qualRepo = _unitOfWork.GetRepository<DoctorQualification, int>();
             await qualRepo.AddAsync(qualification);
             await _unitOfWork.SaveChangesAsync();
-
+            // cahce
+            await _cacheService.RemoveAsync(CacheKeys.DoctorDetails(doctorId));
             return _mapper.Map<QualificationResultDto>(qualification);
 
         }
@@ -161,6 +168,7 @@ namespace Services.Implementations.DoctorModule
 
             qualRepo.Delete(qualification);
             await _unitOfWork.SaveChangesAsync();
+            await _cacheService.RemoveAsync(CacheKeys.DoctorDetails(doctorId));
             return true;
 
         }
@@ -191,7 +199,7 @@ namespace Services.Implementations.DoctorModule
 
             await scheduleRepo.AddAsync(schedule);
             await _unitOfWork.SaveChangesAsync();
-
+            await _cacheService.RemoveAsync(CacheKeys.DoctorSchedule(doctorId));
             return _mapper.Map<ScheduleResultDto>(schedule);
 
         }

@@ -1,18 +1,20 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
 using Domain.Models.DoctorModule;
+using Microsoft.Extensions.Caching.Memory;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
 using Services.Specifications.DoctorModule;
+using Shared.Common;
 using Shared.Dtos.DoctorModule.DepartmentDtos;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Services.Implementations.DoctorModule
 {
-    public class DepartmentService(IUnitOfWork _unitOfWork , IMapper _mapper) : IDepartmentService
+    public class DepartmentService(IUnitOfWork _unitOfWork 
+        , IMapper _mapper , IMemoryCache _cache) : IDepartmentService
     {
+        private static readonly MemoryCacheEntryOptions _cacheOptions =
+    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
         public async Task<DepartmentResultDto> CreateDepartmentAsync(CreateDepartmentDto dto)
         {
             var deptRepo = _unitOfWork.GetRepository<Department, int>();
@@ -20,32 +22,36 @@ namespace Services.Implementations.DoctorModule
             var department = _mapper.Map<Department>(dto);
             await deptRepo.AddAsync(department);
             await _unitOfWork.SaveChangesAsync();
-
+            _cache.Remove(CacheKeys.AllDepartments);
             return _mapper.Map<DepartmentResultDto>(department);
 
         }
 
         public async Task<IEnumerable<DepartmentResultDto>> GetAllDepartmentAsync()
         {
-
+            if (_cache.TryGetValue(CacheKeys.AllDepartments, out IEnumerable<DepartmentResultDto>? cached) && cached is not null)
+                return cached;
             var deptRepo = _unitOfWork.GetRepository<Department, int>();
             var departments = await deptRepo.GetAllAsync(new AllDepartmentsSpecification());
-           
-            
-            return _mapper.Map<IEnumerable<DepartmentResultDto>>(departments);
-
+            var result =  _mapper.Map<IEnumerable<DepartmentResultDto>>(departments);
+            _cache.Set(CacheKeys.AllDepartments, result, _cacheOptions);
+            return result;
         }
 
         public async Task<DepartmentResultDto> GetDepartmentByIdAsync(int id)
         {
+            var cacheKey = CacheKeys.Department(id);
+            if (_cache.TryGetValue(cacheKey, out DepartmentResultDto? cached) && cached is not null)
+                return cached;
             var deptRepo = _unitOfWork.GetRepository<Department, int>();
             var departments = await deptRepo.GetByIdAsync(new DepartmentWithHeadSpecification(id));
 
             if (departments is null)
                 throw new DepartmentNotFoundException(id);
 
-            return _mapper.Map<DepartmentResultDto>(departments);
-
+            var result = _mapper.Map<DepartmentResultDto>(departments);
+            _cache.Set(cacheKey, result, _cacheOptions);
+            return result;
         }
 
         public async Task<DepartmentResultDto> UpadateDepartmentAsync(int id, UpdateDepartmentDto dto)
@@ -65,7 +71,9 @@ namespace Services.Implementations.DoctorModule
 
             deptRepo.Update(department);
             await _unitOfWork.SaveChangesAsync();
-
+            // Evict both the single-item and the list
+            _cache.Remove(CacheKeys.Department(id));
+            _cache.Remove(CacheKeys.AllDepartments);
             var updated = await deptRepo.GetByIdAsync(new DepartmentWithHeadSpecification(id));
             return _mapper.Map<DepartmentResultDto>(updated!);
 

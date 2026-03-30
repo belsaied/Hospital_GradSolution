@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Authorization;
 using Services.Abstraction.Contracts;
 using Shared;
 using Shared.Dtos.DoctorModule.DoctorDtos;
 using Shared.Parameters;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Presentation.Controllers
 {
@@ -32,6 +30,7 @@ namespace Presentation.Controllers
         //Get  /api/doctors/{id}
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Doctor,Patient")]
         [HttpGet("{id:int}")]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(DoctorResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DoctorResultDto>> GetDoctorById(int id)
@@ -65,6 +64,7 @@ namespace Presentation.Controllers
         //Get  /api/doctors
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [HttpGet]
+        [RedisCache(durationInSeconds: 180)]
         [ProducesResponseType(typeof(PaginatedResult<DoctorResultDto>) , StatusCodes.Status200OK)]
         public async Task<ActionResult<PaginatedResult<DoctorResultDto>>> GetAllDoctors([FromQuery] DoctorSpecificationParameters parameters)
                   => Ok(await _serviceManager.DoctorService.GetAllDoctorsAsync(parameters));
@@ -73,6 +73,7 @@ namespace Presentation.Controllers
         //Get /api/doctors/{id}/details
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpGet("{id:int}/details")]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(DoctorWithDetailsResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DoctorWithDetailsResultDto>> GetDoctorWithDetails(int id)
@@ -81,6 +82,7 @@ namespace Presentation.Controllers
         //Get /api/doctors/department/{deptId}
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Patient")]
         [HttpGet("department/{deptId:int}")]
+        [RedisCache(durationInSeconds: 180)]
         [ProducesResponseType(typeof(IEnumerable<DoctorResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<DoctorResultDto>>> GetDoctorsByDepartment(int deptId)
@@ -136,6 +138,7 @@ namespace Presentation.Controllers
         // GET /api/doctors/{id}/schedules
         [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
         [HttpGet("{id:int}/schedules")]
+        [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(IEnumerable<ScheduleResultDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<ScheduleResultDto>>> GetSchedules(int id)
