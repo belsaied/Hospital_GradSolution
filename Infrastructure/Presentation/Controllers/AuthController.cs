@@ -17,7 +17,10 @@ namespace Presentation.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
-            var callerRole = User.FindFirstValue(ClaimTypes.Role);
+            var callerRole = User.Identity?.IsAuthenticated == true
+                ? User.FindFirstValue(ClaimTypes.Role)
+                : null;
+
             return StatusCode(201, await _authService.RegisterAsync(dto, callerRole));
         }
         [AllowAnonymous]

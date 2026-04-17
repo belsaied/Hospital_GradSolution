@@ -69,6 +69,9 @@ namespace Hospital_Grad.API.MiddleWares
                 case NotFoundException:
                     statusCode = StatusCodes.Status404NotFound;
                     break;
+                case UnauthorizedException:           
+                    statusCode = StatusCodes.Status401Unauthorized;
+                    break;
                 case ForbiddenException:
                     statusCode = StatusCodes.Status403Forbidden;
                     break;
@@ -105,8 +108,8 @@ namespace Hospital_Grad.API.MiddleWares
 
         private static string GetTitle(Exception ex) => ex switch
         {
-            //Updated =>Abdo
             NotFoundException => "Resource Not Found",
+            UnauthorizedException => "Unauthorized",
             ConflictException => "Confilct",
             ValidationException => "Validation Error",
             ForbiddenException => "Forbidden",

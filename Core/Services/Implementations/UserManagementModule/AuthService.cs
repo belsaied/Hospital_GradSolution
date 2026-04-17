@@ -1,4 +1,7 @@
-﻿using Domain.Models.IdentityModule;
+﻿using Domain.Contracts;
+using Domain.Models.DoctorModule;
+using Domain.Models.IdentityModule;
+using Domain.Models.PatientModule;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,19 +22,42 @@ namespace Services.Implementations.UserManagementModule
     RoleManager<IdentityRole> _roleManager,
     IOptions<JwtOptions> _jwtOptions,
     IAuditService _auditService,
-    IEmailService _emailService) : IAuthService
+    IEmailService _emailService,
+        IUnitOfWork _unitOfWork) : IAuthService
     {
         private static readonly string[] ProtectedRoles = ["SuperAdmin", "HospitalAdmin"];
 
         public async Task<AuthResultDto> RegisterAsync(RegisterDto dto, string? callerRole)
         {
-            if (ProtectedRoles.Contains(dto.Role) && callerRole != "SuperAdmin")
-                throw new UnauthorizedException("You cannot assign that role.");
+           
+            var adminOnlyRoles = new[] { "SuperAdmin", "HospitalAdmin" };
+            var staffRoles = new[] { "Doctor", "Nurse", "Receptionist" };
+            var publicRoles = new[] { "Patient" };
+
+            if (callerRole is null && !publicRoles.Contains(dto.Role))
+                throw new ForbiddenException(
+                    "Self-registration is only allowed for the 'Patient' role.");
+
+            if (adminOnlyRoles.Contains(dto.Role) && callerRole != "SuperAdmin")
+                throw new ForbiddenException(
+                    $"Only a SuperAdmin can assign the '{dto.Role}' role.");
+
+            if (staffRoles.Contains(dto.Role)
+                && callerRole != "SuperAdmin"
+                && callerRole != "HospitalAdmin")
+                throw new ForbiddenException(
+                    $"Only SuperAdmin or HospitalAdmin can assign the '{dto.Role}' role.");
 
             if (dto.Role == "Doctor")
             {
-                if (!dto.DoctorId.HasValue)
+                if(!dto.DoctorId.HasValue)
                     throw new ValidationException(["DoctorId is required for the Doctor role."]);
+
+                var doctorExists = await _unitOfWork.GetRepository<Doctor, int>()
+                    .GetByIdAsync(dto.DoctorId.Value);
+                if (doctorExists is null)
+                    throw new ValidationException([$"Doctor with ID {dto.DoctorId.Value} does not exist."]);
+
                 if (_userManager.Users.Any(u => u.DoctorId == dto.DoctorId))
                     throw new ValidationException(["This DoctorId is already linked to another account."]);
             }
@@ -40,6 +66,15 @@ namespace Services.Implementations.UserManagementModule
             {
                 if (!dto.PatientId.HasValue)
                     throw new ValidationException(["PatientId is required for the Patient role."]);
+
+                // Check the PatientId actually exists in the Patients table
+                var patientExists = await _unitOfWork
+                    .GetRepository<Patient, int>()
+                    .GetByIdAsync(dto.PatientId.Value);
+
+                if (patientExists is null)
+                    throw new ValidationException([$"Patient with ID {dto.PatientId.Value} does not exist."]);
+
                 if (_userManager.Users.Any(u => u.PatientId == dto.PatientId))
                     throw new ValidationException(["This PatientId is already linked to another account."]);
             }
@@ -70,7 +105,6 @@ namespace Services.Implementations.UserManagementModule
 
             await _emailService.SendVerificationEmailAsync(user.Email!, rawToken);
 
-            // Return user info only — no tokens until email is verified
             return BuildAuthResult(user, [], null, null);
         }
 
