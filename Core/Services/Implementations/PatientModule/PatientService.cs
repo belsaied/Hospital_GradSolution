@@ -51,22 +51,24 @@ namespace Services.Implementations.PatientModule
             return _mapper.Map<PatientResultDto>(patient);
         }
 
-        public async Task<PatientResultDto> RegisterPatientAsync(CreatePatientDto createPatientDto)
+        public async Task<PatientResultDto> RegisterPatientAsync(
+            CreatePatientDto createPatientDto)
         {
-            // STEP 1: Convert DTO to Entity
+
             var patient = _mapper.Map<Patient>(createPatientDto);
-            // STEP 2: Generate Unique Medical Record Number
-            patient.MedicalRecordNumber = await GenerateMedicalRecordNumberAsync();
-            // STEP 3: set system generated fields
+
             patient.RegistrationDate = DateTime.UtcNow;
             patient.Status = PatientStatus.Active;
-            // STEP 4: get patient repository
-            var patientRepository = _unitOfWork.GetRepository<Patient , int>();
-            // STEP 5: Add patient to repository
+            patient.MedicalRecordNumber = string.Empty; // temporary placeholder
+
+            var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             await patientRepository.AddAsync(patient);
-            // STEP 6: Commit changes
             await _unitOfWork.SaveChangesAsync();
-            // STEP 7: Convert Entity back to Result DTO
+
+            patient.MedicalRecordNumber = $"MRN{patient.Id:D6}";
+            patientRepository.Update(patient);
+            await _unitOfWork.SaveChangesAsync();
+
             return _mapper.Map<PatientResultDto>(patient);
         }
 

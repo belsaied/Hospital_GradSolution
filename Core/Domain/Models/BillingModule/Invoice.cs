@@ -16,7 +16,7 @@ namespace Domain.Models.BillingModule
 
         // ── Foreign Keys ─────────────────────────────────────────────────
         public int PatientId { get; set; }
-        public Guid? AppointmentId { get; set; }
+        public int? AppointmentId { get; set; }
         public InvoiceStatus Status { get; set; }
         public decimal SubTotal { get; set; }
         public decimal DiscountAmount { get; set; }

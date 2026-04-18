@@ -13,7 +13,6 @@ using Persistence.Senders;
 using QuestPDF.Infrastructure;
 using Services.Abstraction.Contracts.NotificationService;
 using Services.Implementations.BillingModule;
-using Services.Implementations.NotificationModule.Jobs;
 using Shared.Common;
 using StackExchange.Redis;
 using System.Text;
@@ -22,26 +21,37 @@ namespace Hospital_Grad.API.Extensions
 {
     public static class InfrastructureServiceExtensions
     {
-            public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
-            {
+        public static IServiceCollection AddInfrastructureServices(
+            this IServiceCollection services, IConfiguration configuration)
+        {
+            // ── Database contexts ─────────────────────────────────────────
             services.AddDbContext<HospitalDbContext>(options =>
-            {
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-            });
+                options.UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection")));
+
             services.AddDbContext<IdentityHospitalDbContext>(options =>
-            {
-                options.UseSqlServer(configuration.GetConnectionString("IdentityConnection"));
-            });
+                options.UseSqlServer(
+                    configuration.GetConnectionString("IdentityConnection")));
+
+            // ── Seeding ───────────────────────────────────────────────────
             services.AddScoped<IDataSeeding, DataSeeding>();
             services.AddScoped<IdentityDataSeeding>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddSingleton<IConnectionMultiplexer>(_ =>
-             ConnectionMultiplexer.Connect(
-            configuration.GetConnectionString("RedisConnection")!));
 
-            services.AddScoped<ICacheRepository, CacheRepository>();
+            // ── Repository / UoW ──────────────────────────────────────────
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // ── Redis ─────────────────────────────────────────────────────
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
+                ConnectionMultiplexer.Connect(
+                    configuration.GetConnectionString("RedisConnection")!));
+
+            services.AddScoped<ICacheRepository, CacheRepository>();  // single registration
             services.AddScoped<IAuditRepository, AuditRepository>();
+
+            // ── QuestPDF (community licence — set ONCE) ───────────────────
             QuestPDF.Settings.License = LicenseType.Community;
+
+            // ── Identity ──────────────────────────────────────────────────
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 8;
@@ -50,33 +60,32 @@ namespace Hospital_Grad.API.Extensions
                 options.Password.RequireNonAlphanumeric = true;
                 options.User.RequireUniqueEmail = true;
             })
-              .AddEntityFrameworkStores<IdentityHospitalDbContext>()
-              .AddDefaultTokenProviders();
+            .AddEntityFrameworkStores<IdentityHospitalDbContext>()
+            .AddDefaultTokenProviders();
+
             services.ValidateJwt(configuration);
-            services.Configure<EmailOptions>(configuration.GetSection("EmailOptions"));
-            // QuestPDF License
-            QuestPDF.Settings.License = LicenseType.Community;
 
+            services.Configure<EmailOptions>(
+                configuration.GetSection("EmailOptions"));
 
-            // ── Email sender — switched via appsettings EmailSettings:Provider ─
-            var emailProvider = configuration["EmailSettings:Provider"] ?? "Smtp";
+            var emailProvider =
+                configuration["NotificationEmailSettings:Provider"] ?? "Smtp";
+
             if (emailProvider.Equals("SendGrid", StringComparison.OrdinalIgnoreCase))
                 services.AddScoped<IEmailSender, SendGridEmailSender>();
             else
                 services.AddScoped<IEmailSender, SmtpEmailSender>();
 
-
-            // ── SMS sender — Twilio 
+            // ── SMS sender ────────────────────────────────────────────────
             services.AddScoped<ISmsSender, TwilioSmsSender>();
 
-            // ── Push sender — SignalR wrapper 
+            // ── Push sender (SignalR wrapper) ─────────────────────────────
             services.AddScoped<INotificationPushSender, NotificationPushSender>();
 
-            // ── SignalR 
+            // ── SignalR ───────────────────────────────────────────────────
             services.AddSignalR();
 
-
-            // Hangfire
+            // ── Hangfire ──────────────────────────────────────────────────
             services.AddHangfire(config => config
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                 .UseSimpleAssemblyNameTypeSerializer()
@@ -94,25 +103,20 @@ namespace Hospital_Grad.API.Extensions
 
             services.AddHangfireServer();
 
-            // Hangfire Background Job classes
+            // ── Billing background jobs ───────────────────────────────────
             services.AddScoped<MarkOverdueInvoicesJob>();
             services.AddScoped<InvoiceExpiryNotificationJob>();
-            // Notification Jobs
-            services.AddTransient<AppointmentReminderJob>();
-            services.AddTransient<PrescriptionExpiryWarningJob>();
-            services.AddTransient<InvoiceOverdueReminderJob>();
 
-            //Cach
+            // ── Distributed cache (IDistributedCache) ─────────────────────
             services.AddStackExchangeRedisCache(options =>
-            {
-                options.Configuration = configuration.GetConnectionString("Redis");
-            });
-
-            services.AddScoped<ICacheRepository, CacheRepository>();
+                options.Configuration =
+                    configuration.GetConnectionString("RedisConnection"));
 
             return services;
-            }
-        public static IServiceCollection ValidateJwt(this IServiceCollection services, IConfiguration configuration)
+        }
+
+        public static IServiceCollection ValidateJwt(
+            this IServiceCollection services, IConfiguration configuration)
         {
             var jwtOptions = configuration.GetSection("JwtOptions").Get<JwtOptions>();
 
@@ -132,7 +136,7 @@ namespace Hospital_Grad.API.Extensions
                     ValidIssuer = jwtOptions!.Issuer,
                     ValidAudience = jwtOptions.Audience,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                                                   Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
+                        Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
                 };
             });
 

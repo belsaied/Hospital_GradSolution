@@ -22,8 +22,6 @@ namespace Domain.Models.BillingModule
 
         public decimal ApprovedAmount { get; set; }
 
-        public decimal PatientCopayment { get; set; }
-
         public string? RejectionReason { get; set; }
         public DateTimeOffset? SubmittedAt { get; set; }
         public DateTimeOffset? ResolvedAt { get; set; }

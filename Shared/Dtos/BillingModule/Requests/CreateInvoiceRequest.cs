@@ -7,7 +7,7 @@ namespace Shared.Dtos.BillingModule.Requests
         [Required]
         public int PatientId { get; init; }
 
-        public Guid? AppointmentId { get; init; }
+        public int? AppointmentId { get; init; }
 
         [MaxLength(500)]
         public string? Notes { get; init; }

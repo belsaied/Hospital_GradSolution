@@ -1,7 +1,6 @@
 ﻿using Domain.Models.BillingModule;
 using Domain.Models.Enums.BillingEnums;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Persistence.Data.Configurations.BillingConfigs
@@ -30,7 +29,7 @@ namespace Persistence.Data.Configurations.BillingConfigs
 
             builder.Property(c => c.ClaimedAmount).HasColumnType("decimal(18,4)");
             builder.Property(c => c.ApprovedAmount).HasColumnType("decimal(18,4)");
-            builder.Property(c => c.PatientCopayment).HasColumnType("decimal(18,4)");
+            
 
             builder.ToTable("InsuranceClaims");
         }

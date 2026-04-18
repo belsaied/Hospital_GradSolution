@@ -12,9 +12,6 @@ using Services.Exceptions;
 using Services.Specifications.WardBedModule;
 using Shared.Common;
 using Shared.Dtos.WardBedModule.AdmissionDtos;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Services.Implementations.WardBedModule
 {
@@ -25,26 +22,22 @@ namespace Services.Implementations.WardBedModule
     {
         public async Task<AdmissionResultDto> AdmitPatientAsync(CreateAdmissionDto dto)
         {
-            // 1. Validate patient exists
             var patientRepo = _unitOfWork.GetRepository<Patient, int>();
             var patient = await patientRepo.GetByIdAsync(dto.PatientId);
             if (patient is null) throw new PatientNotFoundException(dto.PatientId);
 
-            //  BR FIX: Patient must be Active (not Inactive or Deceased)
             if (patient.Status != PatientStatus.Active)
                 throw new BusinessRuleException(
-                    $"Cannot admit patient with status '{patient.Status}'. Only Active patients can be admitted.");
+                    $"Cannot admit patient with status '{patient.Status}'.");
 
-            // 2. Validate doctor exists and is Active
             var doctorRepo = _unitOfWork.GetRepository<Doctor, int>();
             var doctor = await doctorRepo.GetByIdAsync(dto.AdmittingDoctorId);
             if (doctor is null) throw new DoctorNotFoundException(dto.AdmittingDoctorId);
 
             if (doctor.Status != DoctorStatus.Active)
                 throw new BusinessRuleException(
-                    $"Cannot assign doctor with status '{doctor.Status}'. Only Active doctors can admit patients.");
+                    $"Cannot assign doctor with status '{doctor.Status}'.");
 
-            // 3. Validate bed exists and is Available
             var bedRepo = _unitOfWork.GetRepository<Bed, int>();
             var bed = await bedRepo.GetByIdAsync(dto.BedId);
             if (bed is null) throw new BedNotFoundException(dto.BedId);
@@ -52,35 +45,26 @@ namespace Services.Implementations.WardBedModule
                 throw new BusinessRuleException(
                     $"Bed {dto.BedId} is not available. Current status: {bed.Status}.");
 
-            // 4. BR: Patient cannot have another active admission
             var admissionRepo = _unitOfWork.GetRepository<Admission, int>();
             var existing = await admissionRepo.GetAllAsync(
                 new ActiveAdmissionForPatientSpecification(dto.PatientId));
             if (existing.Any())
                 throw new BusinessRuleException(
-                    "Patient already has an active admission. Discharge first before re-admitting.");
+                    "Patient already has an active admission.");
 
-            // 5. Create admission
             var admission = _mapper.Map<Admission>(dto);
-
-            // FIX: Use DTO AdmissionDate if provided, otherwise fallback to UtcNow
             admission.AdmissionDate = dto.AdmissionDate == default
                 ? DateTime.UtcNow
                 : dto.AdmissionDate;
-
             admission.Status = AdmissionStatus.Active;
 
             await admissionRepo.AddAsync(admission);
-
-            // 6. Mark bed as Occupied
             bed.Status = BedStatus.Occupied;
             bedRepo.Update(bed);
-
             await _unitOfWork.SaveChangesAsync();
             await _cacheService.RemoveAsync(CacheKeys.WardOccupancy);
-            await _cacheService.RemoveAsync(CacheKeys.AvailableBeds(null, null));
             await _cacheService.RemoveAsync(CacheKeys.RoomBeds(bed.RoomId));
-            // 7. SignalR: BRD event name is "BedOccupied"
+
             await _notifier.NotifyDashboardAsync("BedOccupied", new
             {
                 bedId = dto.BedId,
@@ -90,7 +74,6 @@ namespace Services.Implementations.WardBedModule
                 admissionId = admission.Id
             });
 
-            // 8. Reload with navigation
             var saved = await admissionRepo.GetByIdAsync(
                 new AdmissionWithDetailsSpecification(admission.Id));
             return _mapper.Map<AdmissionResultDto>(saved!);
@@ -105,7 +88,8 @@ namespace Services.Implementations.WardBedModule
             return _mapper.Map<AdmissionResultDto>(admission);
         }
 
-        public async Task<IEnumerable<AdmissionResultDto>> GetPatientAdmissionHistoryAsync(int patientId)
+        public async Task<IEnumerable<AdmissionResultDto>> GetPatientAdmissionHistoryAsync(
+            int patientId)
         {
             var patientRepo = _unitOfWork.GetRepository<Patient, int>();
             if (await patientRepo.GetByIdAsync(patientId) is null)
@@ -124,7 +108,8 @@ namespace Services.Implementations.WardBedModule
             return _mapper.Map<IEnumerable<AdmissionResultDto>>(admissions);
         }
 
-        public async Task<AdmissionResultDto> DischargePatientAsync(int admissionId, DischargeDto dto)
+        public async Task<AdmissionResultDto> DischargePatientAsync(
+            int admissionId, DischargeDto dto)
         {
             var admissionRepo = _unitOfWork.GetRepository<Admission, int>();
             var admission = await admissionRepo.GetByIdAsync(
@@ -135,13 +120,11 @@ namespace Services.Implementations.WardBedModule
                 throw new BusinessRuleException(
                     $"Cannot discharge. Admission status is: {admission.Status}.");
 
-            // Update admission
             admission.Status = AdmissionStatus.Discharged;
             admission.ActualDischargeDate = DateTime.UtcNow;
             admission.DischargeSummary = dto.DischargeSummary;
             admissionRepo.Update(admission);
 
-            // Free the bed
             var bedRepo = _unitOfWork.GetRepository<Bed, int>();
             var bed = await bedRepo.GetByIdAsync(admission.BedId);
             if (bed is not null)
@@ -151,10 +134,12 @@ namespace Services.Implementations.WardBedModule
             }
 
             await _unitOfWork.SaveChangesAsync();
+
+            // FIX: Same as AdmitPatientAsync — only invalidate CacheKeys-format keys.
             await _cacheService.RemoveAsync(CacheKeys.WardOccupancy);
-            await _cacheService.RemoveAsync(CacheKeys.AvailableBeds(null, null));
-            await _cacheService.RemoveAsync(CacheKeys.RoomBeds(bed.RoomId));
-            // SignalR: BRD event : BedReleased
+            if (bed is not null)
+                await _cacheService.RemoveAsync(CacheKeys.RoomBeds(bed.RoomId));
+
             await _notifier.NotifyDashboardAsync("BedReleased", new
             {
                 bedId = admission.BedId,
@@ -163,15 +148,13 @@ namespace Services.Implementations.WardBedModule
                 newStatus = BedStatus.Available.ToString()
             });
 
-            // TODO (Phase 2 Billing hook): emit discharge event to trigger invoice creation
-
             var updated = await admissionRepo.GetByIdAsync(
                 new AdmissionWithDetailsSpecification(admissionId));
             return _mapper.Map<AdmissionResultDto>(updated!);
         }
 
-
-        public async Task<AdmissionResultDto> TransferPatientAsync(int admissionId, TransferBedDto dto)
+        public async Task<AdmissionResultDto> TransferPatientAsync(
+            int admissionId, TransferBedDto dto)
         {
             var admissionRepo = _unitOfWork.GetRepository<Admission, int>();
             var admission = await admissionRepo.GetByIdAsync(
@@ -181,12 +164,10 @@ namespace Services.Implementations.WardBedModule
             if (admission.Status != AdmissionStatus.Active)
                 throw new BusinessRuleException("Can only transfer an Active admission.");
 
-            // BR FIX: ToBedId must be different from current bed
             if (dto.ToBedId == admission.BedId)
                 throw new BusinessRuleException(
                     "Target bed must be different from the patient's current bed.");
 
-            // Validate new bed
             var bedRepo = _unitOfWork.GetRepository<Bed, int>();
             var newBed = await bedRepo.GetByIdAsync(dto.ToBedId);
             if (newBed is null) throw new BedNotFoundException(dto.ToBedId);
@@ -196,7 +177,6 @@ namespace Services.Implementations.WardBedModule
 
             int fromBedId = admission.BedId;
 
-            // Create transfer record
             var transfer = new BedTransfer
             {
                 AdmissionId = admissionId,
@@ -210,18 +190,20 @@ namespace Services.Implementations.WardBedModule
             var transferRepo = _unitOfWork.GetRepository<BedTransfer, int>();
             await transferRepo.AddAsync(transfer);
 
-            // Update admission bed
             admission.BedId = dto.ToBedId;
             admissionRepo.Update(admission);
 
-            // Free old bed, occupy new bed
             var oldBed = await bedRepo.GetByIdAsync(fromBedId);
-            if (oldBed is not null) { oldBed.Status = BedStatus.Available; bedRepo.Update(oldBed); }
+            if (oldBed is not null)
+            {
+                oldBed.Status = BedStatus.Available;
+                bedRepo.Update(oldBed);
+            }
             newBed.Status = BedStatus.Occupied;
             bedRepo.Update(newBed);
 
             await _unitOfWork.SaveChangesAsync();
-            // SignalR: BRD event :BedTransferred
+
             await _notifier.NotifyDashboardAsync("BedTransferred", new
             {
                 fromBedId,

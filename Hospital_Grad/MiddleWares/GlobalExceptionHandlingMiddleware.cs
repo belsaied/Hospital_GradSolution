@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services.Exceptions;
-using Shared.ErrorModels;
 
 namespace Hospital_Grad.API.MiddleWares
 {
@@ -25,7 +24,8 @@ namespace Hospital_Grad.API.MiddleWares
 
         private static async Task HandleNotFoundEndpointAsync(HttpContext context)
         {
-            if (context.Response.StatusCode == StatusCodes.Status404NotFound)
+            if (context.Response.StatusCode == StatusCodes.Status404NotFound
+                && !context.Response.HasStarted)
             {
                 var response = new ProblemDetails
                 {
@@ -55,40 +55,11 @@ namespace Hospital_Grad.API.MiddleWares
                 await context.Response.WriteAsJsonAsync(response);
             }
         }
+
         private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            int statusCode;
-            IEnumerable<string>? validationErrors = null;
-
-            switch (ex)
-            {
-                case ValidationException ve:
-                    statusCode = StatusCodes.Status400BadRequest;
-                    validationErrors = ve.Errors;
-                    break;
-                case NotFoundException:
-                    statusCode = StatusCodes.Status404NotFound;
-                    break;
-                case UnauthorizedException:           
-                    statusCode = StatusCodes.Status401Unauthorized;
-                    break;
-                case ForbiddenException:
-                    statusCode = StatusCodes.Status403Forbidden;
-                    break;
-                case ConflictException:
-                    statusCode = StatusCodes.Status409Conflict;
-                    break;
-                case AccountLockedException:
-                case EmailNotVerifiedException:
-                    statusCode = StatusCodes.Status403Forbidden;
-                    break;
-                case BusinessRuleException:
-                    statusCode = StatusCodes.Status422UnprocessableEntity;
-                    break;
-                default:
-                    statusCode = StatusCodes.Status500InternalServerError;
-                    break;
-            }
+           
+            var (statusCode, validationErrors) = ResolveException(ex);
 
             var response = new ProblemDetails
             {
@@ -101,21 +72,47 @@ namespace Hospital_Grad.API.MiddleWares
             if (validationErrors is not null)
                 response.Extensions["errors"] = validationErrors;
 
-            context.Response.StatusCode = statusCode;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(response);
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = statusCode;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(response);
+            }
         }
+
+        private static (int statusCode, IEnumerable<string>? errors) ResolveException(Exception ex) =>
+    ex switch
+    {
+        ValidationException ve => (StatusCodes.Status400BadRequest, ve.Errors),
+
+        NotFoundException => (StatusCodes.Status404NotFound, null),
+
+        UnauthorizedException => (StatusCodes.Status401Unauthorized, null),
+
+        AccountLockedException
+        or EmailNotVerifiedException
+        or ForbiddenException => (StatusCodes.Status403Forbidden, null),
+
+        ConflictException => (StatusCodes.Status409Conflict, null),
+
+        BusinessRuleException => (StatusCodes.Status422UnprocessableEntity, null),
+
+        _ => (StatusCodes.Status500InternalServerError, null)
+    };
 
         private static string GetTitle(Exception ex) => ex switch
         {
+            ValidationException => "Validation Error",
             NotFoundException => "Resource Not Found",
             UnauthorizedException => "Unauthorized",
-            ConflictException => "Confilct",
-            ValidationException => "Validation Error",
+            AccountLockedException => "Account Locked",
+            EmailNotVerifiedException => "Email Not Verified",
             ForbiddenException => "Forbidden",
+            ConflictException => "Conflict",
             BusinessRuleException => "Business Rule Violation",
             _ => "An unexpected error occurred"
         };
-
     }
+
 }
+

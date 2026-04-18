@@ -10,8 +10,8 @@ namespace Presentation.Authorization
     public class RedisCacheAttribute (int durationInSeconds=120) : ActionFilterAttribute
     {
         public override async Task OnActionExecutionAsync(
-    ActionExecutingContext context,
-    ActionExecutionDelegate next)
+            ActionExecutingContext context,
+            ActionExecutionDelegate next)
         {
             var cacheService = context.HttpContext.RequestServices
                 .GetRequiredService<IServiceManager>().CacheService;
@@ -40,13 +40,16 @@ namespace Presentation.Authorization
             }
         }
 
-        private static string GenerateKey(HttpRequest request)
+        public static string GenerateKey(HttpRequest request)
         {
             var key = new StringBuilder();
-            key.Append(request.Path);
+            key.Append(request.Path.ToString().ToLowerInvariant());
 
-            foreach (var item in request.Query.OrderBy(x => x.Key))
-                key.Append($"{item.Key}-{item.Value}");
+            foreach (var item in request.Query
+                .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                key.Append($":{item.Key.ToLowerInvariant()}={item.Value}");
+            }
 
             return key.ToString();
         }

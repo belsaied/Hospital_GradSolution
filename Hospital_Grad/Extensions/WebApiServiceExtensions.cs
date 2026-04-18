@@ -1,62 +1,46 @@
 ﻿using Hospital_Grad.API.Factories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Services.Abstraction.Contracts.NotificationService;
-using Services.Implementations.NotificationModule;
 
 namespace Hospital_Grad.API.Extensions
 {
     public static class WebApiServiceExtensions
     {
-        public static IServiceCollection AddWebApiServices(this IServiceCollection services)
+        public static IServiceCollection AddWebApiServices(
+            this IServiceCollection services)
         {
-            // Add any Web API specific services here (e.g., controllers, filters, etc.)
             services.AddControllers()
-                    .AddJsonOptions(options =>
-                    {
-                        options.JsonSerializerOptions.Converters.Add(
-                            new System.Text.Json.Serialization.JsonStringEnumConverter()
-                        );
-                    });
-            services.AddSignalR();
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(
+                        new System.Text.Json.Serialization.JsonStringEnumConverter());
+                });
+
+
             services.AddEndpointsApiExplorer();
             services.AddOpenApi();
             services.AddMemoryCache();
+
             services.AddSwaggerGen(options =>
             {
                 options.UseInlineDefinitionsForEnums();
             });
-            //  CORS policies for development 
+
             services.AddCors(options =>
             {
                 options.AddPolicy("DevPolicy", policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000")  // replace with front actual url (in appsettings and then name here )
+                    policy.WithOrigins("http://localhost:3000")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials();         // Required for SignalR WebSocket upgrade
+                          .AllowCredentials();
                 });
             });
+
             services.Configure<ApiBehaviorOptions>(options =>
             {
-                options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationResponse;
+                options.InvalidModelStateResponseFactory =
+                    ApiResponseFactory.GenerateApiValidationResponse;
             });
-
-            services.AddScoped<NotificationService>();
-            services.AddScoped<INotificationService>(p =>
-            p.GetRequiredService<NotificationService>());
-
-            services.AddScoped<Func<INotificationService>>(p =>
-            () => p.GetRequiredService<INotificationService>());
-            services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
-            
-            services.AddScoped<Func<INotificationPreferenceService>>(p =>
-            () => p.GetRequiredService<INotificationPreferenceService>());
-            services.AddScoped<INotificationLogService, NotificationLogService>();
-            
-            services.AddScoped<Func<INotificationLogService>>(p =>
-                () => p.GetRequiredService<INotificationLogService>());
-
             return services;
         }
     }

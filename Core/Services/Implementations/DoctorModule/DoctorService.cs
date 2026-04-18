@@ -20,33 +20,39 @@ namespace Services.Implementations.DoctorModule
             var doctorRepo = _unitOfWork.GetRepository<Doctor, int>();
             var deptRepo = _unitOfWork.GetRepository<Department, int>();
 
-            // Step 1 :=> بيتشك الاول واشوف القسم موجود  ولا لا 
+            // Step 1: Validate department exists
             var department = await deptRepo.GetByIdAsync(dto.DepartmentId);
             if (department is null)
                 throw new DepartmentNotFoundException(dto.DepartmentId);
 
-            //Step 2 :=> تأكد إن LicenseNumber مش مكرر
-            var allDoctors = await doctorRepo.GetAllAsync(asNoTracking: true);
-            if (allDoctors.Any(d => d.LicenseNumber == dto.LicenseNumber))
+            // Step 2: Check LicenseNumber uniqueness with a targeted DB query
+            // — no full table load, uses the existing unique index
+            var licenseExists = await doctorRepo.CountAsync(
+                new DoctorByLicenseSpecification(dto.LicenseNumber)) > 0;
+            if (licenseExists)
                 throw new DuplicateLicenseNumberException(dto.LicenseNumber);
 
-            //Step 3:=>  تأكد إن Email مش مكرر
-            if (allDoctors.Any(d => d.Email.ToLower() == dto.Email.ToLower()))
+            // Step 3: Check Email uniqueness with a targeted DB query
+            var emailExists = await doctorRepo.CountAsync(
+                new DoctorByEmailSpecification(dto.Email)) > 0;
+            if (emailExists)
                 throw new DuplicateDoctorEmailException(dto.Email);
 
-            //Step 4: => Mapping
+            // Step 4: Map and save
             var doctor = _mapper.Map<Doctor>(dto);
             doctor.JoinDate = DateTime.UtcNow;
             doctor.Status = DoctorStatus.Active;
 
             await doctorRepo.AddAsync(doctor);
             await _unitOfWork.SaveChangesAsync();
-            // Cache Invalidation
-            await _cacheService.RemoveAsync(CacheKeys.DoctorsByDepartment(dto.DepartmentId));
-            // Reload with Department لأن الـ mapper محتاج DepartmentName
-            var saved = await doctorRepo.GetByIdAsync(new DoctorWithDetailsSpecification(doctor.Id));
-            return _mapper.Map<DoctorResultDto>(saved);
 
+            // Cache invalidation
+            await _cacheService.RemoveAsync(CacheKeys.DoctorsByDepartment(dto.DepartmentId));
+
+            // Reload with Department for mapping
+            var saved = await doctorRepo.GetByIdAsync(
+                new DoctorWithDetailsSpecification(doctor.Id));
+            return _mapper.Map<DoctorResultDto>(saved);
         }
         public async Task<DoctorResultDto> GetDoctorByIdAsync(int id)
         {

@@ -32,16 +32,23 @@ namespace Presentation.Controllers.BillingModule
             return StatusCode(StatusCodes.Status201Created, payment);
         }
 
-        // POST /api/payments/webhook — AllowAnonymous; validated by Stripe-Signature header
+        // POST /api/payments/webhook
         [HttpPost("webhook")]
         [AllowAnonymous]
+        [DisableRequestSizeLimit]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> StripeWebhook()
         {
-            // Raw body must be read BEFORE any model binding — Stripe validates exact bytes
-            using var reader = new StreamReader(HttpContext.Request.Body);
-            var payload = await reader.ReadToEndAsync();
+            HttpContext.Request.Body.Position = 0;
+
+            string payload;
+            using (var reader = new StreamReader(
+                HttpContext.Request.Body,
+                leaveOpen: true))          // leaveOpen so Stripe SDK can re-read if needed
+            {
+                payload = await reader.ReadToEndAsync();
+            }
 
             var signature = Request.Headers["Stripe-Signature"].FirstOrDefault();
             if (string.IsNullOrEmpty(signature))
@@ -59,6 +66,7 @@ namespace Presentation.Controllers.BillingModule
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<PaymentResultDto>> RefundPayment(
             Guid paymentId, [FromBody] RefundRequest request)
-            => Ok(await _paymentService.RefundPaymentAsync(paymentId, request.Amount, request.Reason));
+            => Ok(await _paymentService.RefundPaymentAsync(
+                paymentId, request.Amount, request.Reason));
     }
 }
