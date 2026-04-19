@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Persistence.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddFullDBHospital : Migration
+    public partial class BUGfix : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -73,7 +73,7 @@ namespace Persistence.Data.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     InvoiceNumber = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     PatientId = table.Column<int>(type: "int", nullable: false),
-                    AppointmentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    AppointmentId = table.Column<int>(type: "int", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     SubTotal = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     DiscountAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
@@ -216,7 +216,6 @@ namespace Persistence.Data.Migrations
                     ClaimStatus = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
                     ClaimedAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     ApprovedAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
-                    PatientCopayment = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
                     RejectionReason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     SubmittedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     ResolvedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),

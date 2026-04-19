@@ -23,7 +23,8 @@ namespace Services.Implementations.UserManagementModule
     IOptions<JwtOptions> _jwtOptions,
     IAuditService _auditService,
     IEmailService _emailService,
-        IUnitOfWork _unitOfWork) : IAuthService
+        IUnitOfWork _unitOfWork,
+        ICacheService _cacheService) : IAuthService
     {
         private static readonly string[] ProtectedRoles = ["SuperAdmin", "HospitalAdmin"];
 
@@ -102,10 +103,17 @@ namespace Services.Implementations.UserManagementModule
             user.EmailVerificationTokenHash = HashToken(rawToken);
             user.EmailVerificationExpiry = DateTime.UtcNow.AddHours(24);
             await _userManager.UpdateAsync(user);
+            
+            try
+            {
+                await _emailService.SendVerificationEmailAsync(user.Email!, rawToken);
+            }
+            catch
+            {
+                
+            }
 
-            await _emailService.SendVerificationEmailAsync(user.Email!, rawToken);
-
-            return BuildAuthResult(user, [], null, null);
+            return BuildAuthResult(user, [], null, null, rawToken);
         }
 
         public async Task<AuthResultDto> LoginAsync(LoginDto dto)
@@ -169,7 +177,8 @@ namespace Services.Implementations.UserManagementModule
             return BuildAuthResult(user, roles, accessToken, rawRefresh);
         }
 
-        public async Task LogoutAsync(string userId)
+        
+        public async Task LogoutAsync(string userId, string accessToken)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user is null) return;
@@ -177,6 +186,12 @@ namespace Services.Implementations.UserManagementModule
             user.RefreshTokenHash = null;
             user.RefreshTokenExpiry = null;
             await _userManager.UpdateAsync(user);
+
+            // Blacklist the access token in Redis until it expires
+            var opts = _jwtOptions.Value;
+            var expiry = TimeSpan.FromMinutes(opts.AccessTokenMinutes);
+            await _cacheService.SetCacheValueAsync($"blacklist:{accessToken}", "revoked", expiry);
+
             await _auditService.LogAsync(userId, "LOGOUT");
         }
 
@@ -271,15 +286,18 @@ namespace Services.Implementations.UserManagementModule
             return Convert.ToHexString(bytes);
         }
 
+        
         private AuthResultDto BuildAuthResult(
             ApplicationUser user, IList<string> roles,
-            string? accessToken, string? refreshToken)
+            string? accessToken, string? refreshToken,
+            string? emailVerificationToken = null)
         {
             return new AuthResultDto
             {
                 AccessToken = accessToken ?? string.Empty,
                 RefreshToken = refreshToken ?? string.Empty,
                 ExpiresIn = _jwtOptions.Value.AccessTokenMinutes * 60,
+                EmailVerificationToken = emailVerificationToken,
                 User = new UserInfoDto
                 {
                     Id = user.Id,

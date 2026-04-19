@@ -12,15 +12,15 @@ using Persistence.Data.DbContexts;
 namespace Persistence.Data.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    [Migration("20260330154258_AddFullDBHospital")]
-    partial class AddFullDBHospital
+    [Migration("20260418231303_BUGfix")]
+    partial class BUGfix
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -138,9 +138,6 @@ namespace Persistence.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<decimal>("PatientCopayment")
-                        .HasColumnType("decimal(18,4)");
-
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
 
@@ -173,8 +170,8 @@ namespace Persistence.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("AppointmentId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");

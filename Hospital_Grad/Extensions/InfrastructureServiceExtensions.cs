@@ -11,6 +11,7 @@ using Persistence.Data.Identity;
 using Persistence.Implementations;
 using Persistence.Senders;
 using QuestPDF.Infrastructure;
+using Services.Abstraction.Contracts;
 using Services.Abstraction.Contracts.NotificationService;
 using Services.Implementations.BillingModule;
 using Shared.Common;
@@ -125,20 +126,39 @@ namespace Hospital_Grad.API.Extensions
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(options =>
+
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtOptions!.Issuer,
+        ValidAudience = jwtOptions.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var cache = context.HttpContext.RequestServices
+                .GetRequiredService<ICacheService>();
+
+            var token = context.HttpContext.Request.Headers["Authorization"]
+                .ToString().Replace("Bearer ", "");
+
+            var blacklisted = await cache.GetCachedValueAsync($"blacklist:{token}");
+            if (blacklisted is not null)
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtOptions!.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
-                };
-            });
+                context.Fail("Token has been revoked.");
+            }
+        }
+    };
+});
 
             services.AddAuthorization();
             return services;

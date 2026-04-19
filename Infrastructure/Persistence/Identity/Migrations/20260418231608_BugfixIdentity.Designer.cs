@@ -12,15 +12,15 @@ using Persistence.Data.Identity;
 namespace Persistence.Identity.Migrations
 {
     [DbContext(typeof(IdentityHospitalDbContext))]
-    [Migration("20260306052836_BelalIdenttityRemakeV")]
-    partial class BelalIdenttityRemakeV
+    [Migration("20260418231608_BugfixIdentity")]
+    partial class BugfixIdentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

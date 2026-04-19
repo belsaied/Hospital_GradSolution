@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Persistence.Identity.Migrations
 {
     /// <inheritdoc />
-    public partial class BelalIdenttityRemakeV : Migration
+    public partial class BugfixIdentity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
