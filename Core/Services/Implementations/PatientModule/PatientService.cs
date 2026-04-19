@@ -72,19 +72,6 @@ namespace Services.Implementations.PatientModule
             return _mapper.Map<PatientResultDto>(patient);
         }
 
-        private async Task<string> GenerateMedicalRecordNumberAsync()
-        {
-            // 1] Get patient Repository
-            var patientRepository = _unitOfWork.GetRepository<Patient , int>();
-            // 2] Get all patients to find the max medical record number
-            var allPatients = await patientRepository.GetAllAsync(asNoTracking : true);
-            // 3] Count
-            var count = allPatients.Count();
-            // 4] Generate mrn
-            var mrn = $"MRN{(count + 1):D6}";
-            return mrn;
-        }
-
         public async Task<PatientResultDto> UpdatePatientAsync(int id, UpdatePatientDto updatePatientDto)
         {
             var patientRepository = _unitOfWork.GetRepository<Patient , int>();

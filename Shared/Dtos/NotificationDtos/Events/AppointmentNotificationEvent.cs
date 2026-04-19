@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Shared.Dtos.NotificationDtos.Events
+﻿namespace Shared.Dtos.NotificationDtos.Events
 {
     public class AppointmentNotificationEvent
     {
-        public Guid AppointmentId { get; set; }
+        public int AppointmentId { get; set; }
         public int PatientId { get; set; }
         public string PatientEmail { get; set; } = string.Empty!;
         public string? PatientPhone { get; set; }

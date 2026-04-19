@@ -60,7 +60,7 @@ namespace Services.Implementations.MedicalRecordModule
             if (order is null) throw new NotFoundException("LabOrder", orderId);
 
             // Guard against invalid transitions — result attachment handles Completed separately
-            if (order.Status == LabOrderStatus.Completed || order.Status == LabOrderStatus.Cacelled)
+            if (order.Status == LabOrderStatus.Completed || order.Status == LabOrderStatus.Cancelled)
                 throw new BusinessRuleException(
                     $"Cannot change status of a {order.Status} lab order.");
 
