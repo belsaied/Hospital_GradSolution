@@ -17,6 +17,7 @@ namespace Services.Abstraction.Contracts.NotificationService
         Task SendInvoiceIssuedAsync(InvoiceNotificationEvent evt);
         Task SendPaymentReceivedAsync(PaymentNotificationEvent evt);
         Task SendInvoiceOverdueAsync(InvoiceNotificationEvent evt);
-        Task SendCustomAdminMessageAsync(int recipientId, RecipientType recipientType, string subject, string body, NotificationChannel channel);
+        Task SendCustomAdminMessageAsync(int recipientId, RecipientType recipientType, string subject, string body, NotificationChannel channel, string? recipientEmail = null,
+    string? recipientPhone = null);
     }
 }

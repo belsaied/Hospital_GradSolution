@@ -1,5 +1,6 @@
 ﻿using Domain.Contracts;
 using Domain.Models.DoctorModule;
+using Domain.Models.Enums.PatientEnums;
 using Domain.Models.IdentityModule;
 using Domain.Models.PatientModule;
 using Microsoft.AspNetCore.Identity;
@@ -35,15 +36,22 @@ namespace Services.Implementations.UserManagementModule
             var staffRoles = new[] { "Doctor", "Nurse", "Receptionist" };
             var publicRoles = new[] { "Patient" };
 
-            if (callerRole is null && !publicRoles.Contains(dto.Role))
+            var selfRegistrationAllowed = publicRoles.Contains(dto.Role) ||
+                (dto.Role == "Doctor" && dto.DoctorId.HasValue);
+
+            if (callerRole is null && !selfRegistrationAllowed)
                 throw new ForbiddenException(
-                    "Self-registration is only allowed for the 'Patient' role.");
+                    "Self-registration is only allowed for the 'Patient' role, or for Doctors using their assigned Doctor ID.");
 
             if (adminOnlyRoles.Contains(dto.Role) && callerRole != "SuperAdmin")
                 throw new ForbiddenException(
                     $"Only a SuperAdmin can assign the '{dto.Role}' role.");
 
+            // Allow doctor self-registration with a valid doctorId
+            var isDoctorSelfRegistering = dto.Role == "Doctor" && dto.DoctorId.HasValue && callerRole is null;
+
             if (staffRoles.Contains(dto.Role)
+                && !isDoctorSelfRegistering
                 && callerRole != "SuperAdmin"
                 && callerRole != "HospitalAdmin")
                 throw new ForbiddenException(
@@ -63,23 +71,62 @@ namespace Services.Implementations.UserManagementModule
                     throw new ValidationException(["This DoctorId is already linked to another account."]);
             }
 
+            #region old patient registeration throw superAdmin
+            //if (dto.Role == "Patient")
+            //{
+            //    if (!dto.PatientId.HasValue)
+            //        throw new ValidationException(["PatientId is required for the Patient role."]);
+
+            //    // Check the PatientId actually exists in the Patients table
+            //    var patientExists = await _unitOfWork
+            //        .GetRepository<Patient, int>()
+            //        .GetByIdAsync(dto.PatientId.Value);
+
+            //    if (patientExists is null)
+            //        throw new ValidationException([$"Patient with ID {dto.PatientId.Value} does not exist."]);
+
+            //    if (_userManager.Users.Any(u => u.PatientId == dto.PatientId))
+            //        throw new ValidationException(["This PatientId is already linked to another account."]);
+            //} 
+            #endregion
             if (dto.Role == "Patient")
             {
-                if (!dto.PatientId.HasValue)
-                    throw new ValidationException(["PatientId is required for the Patient role."]);
+                if (dto.PatientInfo is null)
+                    throw new ValidationException(["PatientInfo is required when registering as a Patient."]);
 
-                // Check the PatientId actually exists in the Patients table
-                var patientExists = await _unitOfWork
-                    .GetRepository<Patient, int>()
-                    .GetByIdAsync(dto.PatientId.Value);
+                // Create the Patient record automatically
+                var patient = new Patient
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    Email = dto.Email,
+                    Phone = dto.PatientInfo.Phone,
+                    DateOfBirth = dto.PatientInfo.DateOfBirth,
+                    Gender = dto.PatientInfo.Gender,
+                    NationalId = dto.PatientInfo.NationalId,
+                    Address = new Address
+                    {
+                        Street = dto.PatientInfo.Address?.Street ?? string.Empty,
+                        City = dto.PatientInfo.Address?.City ?? string.Empty,
+                        Country = dto.PatientInfo.Address?.Country ?? string.Empty,
+                        PostalCode = dto.PatientInfo.Address?.PostalCode ?? string.Empty
+                    },
+                    RegistrationDate = DateTime.UtcNow,
+                    Status = PatientStatus.Active,
+                    MedicalRecordNumber = string.Empty // temporary
+                };
 
-                if (patientExists is null)
-                    throw new ValidationException([$"Patient with ID {dto.PatientId.Value} does not exist."]);
+                var patientRepo = _unitOfWork.GetRepository<Patient, int>();
+                await patientRepo.AddAsync(patient);
+                await _unitOfWork.SaveChangesAsync();
 
-                if (_userManager.Users.Any(u => u.PatientId == dto.PatientId))
-                    throw new ValidationException(["This PatientId is already linked to another account."]);
+                // Generate MRN
+                patient.MedicalRecordNumber = $"MRN{patient.Id:D6}";
+                patientRepo.Update(patient);
+                await _unitOfWork.SaveChangesAsync();
+
+                dto = dto with { PatientId = patient.Id };
             }
-
             var user = new ApplicationUser
             {
                 FirstName = dto.FirstName,

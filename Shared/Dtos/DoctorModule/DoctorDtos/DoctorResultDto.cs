@@ -17,7 +17,7 @@ namespace Shared.Dtos.DoctorModule.DoctorDtos
         public string Specialization { get; init; } = string.Empty;
         public int DepartmentId { get; init; }
         public string DepartmentName { get; init; } = string.Empty;
-        public int YearOfExperience { get; init; }
+        public int YearsOfExperience { get; init; }
         public decimal ConsultationFee { get; init; }
         public string?  Bio { get; init; }
         public string Status { get; init; } =string.Empty;

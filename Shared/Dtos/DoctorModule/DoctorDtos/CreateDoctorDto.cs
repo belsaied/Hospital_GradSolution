@@ -35,8 +35,8 @@ namespace Shared.Dtos.DoctorModule.DoctorDtos
         [Required]
         public int DepartmentId { get; init; }
 
-        [Required,Range(0,60)]
-        public int YearOfExperience { get; init; }
+        [Required, Range(0, 60)]
+        public int YearsOfExperience { get; init; }
 
         [Required,Range(0,100000)]
         public decimal ConsultationFee { get; init; }

@@ -13,7 +13,7 @@ using Shared.Parameters;
 namespace Services.Implementations.DoctorModule
 {
     public class DoctorService(IUnitOfWork _unitOfWork 
-        , IMapper _mapper , ICacheService _cacheService) : IDoctorService
+        , IMapper _mapper , ICacheService _cacheService , IEmailService _emailService) : IDoctorService
     {
         public async Task<DoctorResultDto> RegisterDoctorAsync(CreateDoctorDto dto)
         {
@@ -52,7 +52,21 @@ namespace Services.Implementations.DoctorModule
             // Reload with Department for mapping
             var saved = await doctorRepo.GetByIdAsync(
                 new DoctorWithDetailsSpecification(doctor.Id));
+            // Notify the doctor with their ID
+            try
+            {
+                await _emailService.SendDoctorWelcomeEmailAsync(
+                    doctor.Email,
+                    $"{doctor.FirstName} {doctor.LastName}",
+                    saved!.Id);
+            }
+            catch
+            {
+                
+            }
+
             return _mapper.Map<DoctorResultDto>(saved);
+            
         }
         public async Task<DoctorResultDto> GetDoctorByIdAsync(int id)
         {

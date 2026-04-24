@@ -3,6 +3,7 @@ using Domain.Models.Enums.NotificationEnums;
 using Domain.Models.NotificationModule;
 using Microsoft.Extensions.Logging;
 using Services.Abstraction.Contracts.NotificationService;
+using Services.Exceptions;
 using Services.Specifications.NotificationModule;
 using Services.Specifications.NotificationModule.NotificationTemplateSpecifications;
 using Shared.Dtos.NotificationDtos.Events;
@@ -252,7 +253,9 @@ namespace Services.Implementations.NotificationModule
                 relatedEntityType: "Invoice");
         }
 
-        public async Task SendCustomAdminMessageAsync(int recipientId, RecipientType recipientType, string subject, string body, NotificationChannel channel)
+        public async Task SendCustomAdminMessageAsync(int recipientId, RecipientType recipientType, string subject, string body, NotificationChannel channel
+            , string? recipientEmail = null,     
+              string? recipientPhone = null)
         {
             // For admin custom messages: bypass template system, bypass preferences
             var notification = new Notification
@@ -273,15 +276,15 @@ namespace Services.Implementations.NotificationModule
                 switch (channel)
                 {
                     case NotificationChannel.Email:
-                        await _emailSender.SendAsync(string.Empty, string.Empty, subject, body);
-                        notification.DeliveryStatus = DeliveryStatus.Sent;
-                        notification.SentAt = DateTimeOffset.UtcNow;
+                        if (string.IsNullOrWhiteSpace(recipientEmail))
+                            throw new NotificationChannelUnavailableException("Email");
+                        await _emailSender.SendAsync(recipientEmail, string.Empty, subject, body);
                         break;
+
                     case NotificationChannel.SMS:
-                        var sid = await _smsSender.SendAsync(string.Empty, body);
-                        notification.ExternalMessageId = sid;
-                        notification.DeliveryStatus = DeliveryStatus.Sent;
-                        notification.SentAt = DateTimeOffset.UtcNow;
+                        if (string.IsNullOrWhiteSpace(recipientPhone))
+                            throw new NotificationChannelUnavailableException("SMS");
+                        var sid = await _smsSender.SendAsync(recipientPhone, body);
                         break;
                     case NotificationChannel.Push:
                         await _pushSender.SendAsync(recipientId.ToString(), new { subject, body });

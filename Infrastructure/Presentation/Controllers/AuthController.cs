@@ -37,7 +37,11 @@ namespace Presentation.Controllers
         public async Task<IActionResult> Logout()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            // var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var raw = Request.Headers["Authorization"].ToString();
+            var accessToken = raw.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? raw["Bearer ".Length..]
+                : raw;
             await _authService.LogoutAsync(userId, accessToken);
             return NoContent();
         }

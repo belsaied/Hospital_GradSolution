@@ -20,7 +20,7 @@ namespace Services.Implementations.BillingModule
     public sealed class InvoiceService (IUnitOfWork _unitOfWork
         , IMapper _mapper , IInvoicePdfGenerator _pdfGenerator,ILogger<InvoiceService> _logger ,INotificationService _notificationService) : IInvoiceService
     {
-        // ── Create ────────────────────────────────────────────────────────────
+        
 
         public async Task<InvoiceResultDto> CreateInvoiceAsync(CreateInvoiceRequest request)
         {
@@ -62,8 +62,6 @@ namespace Services.Implementations.BillingModule
 
             return await BuildDetailDtoAsync(invoice, patient.FirstName + " " + patient.LastName);
         }
-
-        // ── Read ──────────────────────────────────────────────────────────────
 
         public async Task<InvoiceResultDto> GetInvoiceByIdAsync(Guid id)
         {
@@ -112,7 +110,6 @@ namespace Services.Implementations.BillingModule
             return new PaginatedResult<InvoiceSummaryResultDto>(filters.PageIndex, filters.PageSize, count, items);
         }
 
-        // ── Line Items ────────────────────────────────────────────────────────
 
         public async Task<InvoiceResultDto> AddLineItemAsync(Guid invoiceId, AddLineItemRequest request)
         {
@@ -152,8 +149,6 @@ namespace Services.Implementations.BillingModule
             await _unitOfWork.SaveChangesAsync();
         }
 
-        // ── Status Transitions ────────────────────────────────────────────────
-
         public async Task<InvoiceResultDto> IssueInvoiceAsync(Guid invoiceId, IssueInvoiceRequest request)
         {
             var invoice = await LoadInvoiceWithDetailsAsync(invoiceId);
@@ -162,7 +157,6 @@ namespace Services.Implementations.BillingModule
                 throw new InvalidInvoiceStatusTransitionException(invoice.Status.ToString(),
                     InvoiceStatus.Issued.ToString());
 
-            // Apply pricing parameters supplied at issuance
             invoice.DiscountAmount = request.DiscountAmount;
             invoice.DiscountPercent = request.DiscountPercent;
             invoice.TaxPercent = request.TaxPercent;
@@ -173,19 +167,19 @@ namespace Services.Implementations.BillingModule
             invoice.Status = InvoiceStatus.Issued;
             invoice.IssuedAt = DateTimeOffset.UtcNow;
 
-            // Default DueDate to 30 days from issuance if not previously set
             invoice.DueDate ??= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
 
             _unitOfWork.GetRepository<Invoice, Guid>().Update(invoice);
             await _unitOfWork.SaveChangesAsync();
 
-
-            var patient = await _unitOfWork.GetRepository<Patient, int>().GetByIdAsync(invoice.PatientId);
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
+                .GetByIdAsync(invoice.PatientId)
+                ?? throw new PatientNotFoundException(invoice.PatientId);
             try
             {
                 byte[]? pdfBytes = null;
                 try { pdfBytes = _pdfGenerator.Generate(invoice, patient?.FirstName + " " + patient?.LastName, patient?.Email ?? ""); }
-                catch { /* pdf failure must not block notification */ }
+                catch {  }
 
                 await _notificationService.SendInvoiceIssuedAsync(new InvoiceNotificationEvent
                 {
@@ -193,7 +187,7 @@ namespace Services.Implementations.BillingModule
                     InvoiceNumber = invoice.InvoiceNumber,
                     PatientId = invoice.PatientId,
                     PatientEmail = patient?.Email ?? string.Empty,
-                    PatientName = $"{patient.FirstName} {patient?.LastName}",
+                    PatientName = $"{patient?.FirstName} {patient?.LastName}",
                     TotalAmount = invoice.TotalAmount,
                     DueDate = invoice.DueDate,
                     PdfBytes = pdfBytes
@@ -230,7 +224,6 @@ namespace Services.Implementations.BillingModule
             await _unitOfWork.SaveChangesAsync();
         }
 
-        // ── PDF ───────────────────────────────────────────────────────────────
 
         public async Task<byte[]> GenerateInvoicePdfAsync(Guid invoiceId)
         {
@@ -240,8 +233,6 @@ namespace Services.Implementations.BillingModule
 
             return _pdfGenerator.Generate(invoice, patientName, patient?.Email ?? string.Empty);
         }
-
-        // ── Private Helpers ───────────────────────────────────────────────────
 
         private async Task<Invoice> LoadInvoiceWithDetailsAsync(Guid invoiceId)
         {

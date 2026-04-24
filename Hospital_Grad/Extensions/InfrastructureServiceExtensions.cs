@@ -148,8 +148,10 @@ namespace Hospital_Grad.API.Extensions
             var cache = context.HttpContext.RequestServices
                 .GetRequiredService<ICacheService>();
 
-            var token = context.HttpContext.Request.Headers["Authorization"]
-                .ToString().Replace("Bearer ", "");
+            var raw = context.HttpContext.Request.Headers["Authorization"].ToString();
+            var token = raw.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? raw["Bearer ".Length..]
+                : raw;
 
             var blacklisted = await cache.GetCachedValueAsync($"blacklist:{token}");
             if (blacklisted is not null)

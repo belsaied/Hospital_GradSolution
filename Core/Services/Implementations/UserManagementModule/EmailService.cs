@@ -43,6 +43,34 @@ namespace Services.Implementations.UserManagementModule
             await smtp.SendAsync(message);
             await smtp.DisconnectAsync(true);
         }
+        public async Task SendDoctorWelcomeEmailAsync(string toEmail, string doctorName, int doctorId)
+        {
+            var registerLink = $"{_options.Value.FrontendUrl}/doctor-register";
+
+            await SendAsync(toEmail, "Welcome to HMS — Complete Your Registration",
+                $"""
+        <h2>Welcome to HMS, Dr. {doctorName}!</h2>
+        <p>Your doctor profile has been created in our Hospital Management System.</p>
+        
+        <div style="background:#f0f4ff;padding:20px;border-radius:8px;margin:20px 0;">
+            <h3 style="color:#1E3A5F;">Your Doctor ID</h3>
+            <p style="font-size:32px;font-weight:bold;color:#0078D4;letter-spacing:4px;">{doctorId}</p>
+            <p>You will need this ID to complete your registration.</p>
+        </div>
+        
+        <h3>Next Steps:</h3>
+        <ol>
+            <li>Visit the registration page: <a href='{registerLink}'>{registerLink}</a></li>
+            <li>Fill in your details and enter your Doctor ID: <strong>{doctorId}</strong></li>
+            <li>Set your password</li>
+            <li>Verify your email when prompted</li>
+        </ol>
+        
+        <p>If you did not expect this email, please contact the hospital administration.</p>
+        <p>Thank you,<br/>HMS Team</p>
+        """);
+        }
+
     }
 
 }

@@ -6,7 +6,7 @@ namespace Shared.Dtos.NotificationDtos.Events
 {
     public class AbnormalLabResultEvent
     {
-        public Guid LabOrderId { get; set; }
+        public int LabOrderId { get; set; }
         public int PatientId { get; set; }
         public string PatientName { get; set; } = string.Empty!;
         public int OrderingDoctorId { get; set; }

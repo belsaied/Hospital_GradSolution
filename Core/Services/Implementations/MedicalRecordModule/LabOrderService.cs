@@ -104,6 +104,7 @@ namespace Services.Implementations.MedicalRecordModule
 
                     await _notificationService.SendAbnormalLabResultAsync(new AbnormalLabResultEvent
                     {
+                        LabOrderId = order.Id,
                         PatientId = order.PatientId,
                         PatientName = patient is not null ? $"{patient.FirstName} {patient.LastName}" : "Unknown",
                         OrderingDoctorId = order.DoctorId,

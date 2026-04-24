@@ -59,11 +59,11 @@ namespace Services.Implementations.PatientModule
 
             patient.RegistrationDate = DateTime.UtcNow;
             patient.Status = PatientStatus.Active;
-            patient.MedicalRecordNumber = string.Empty; // temporary placeholder
 
+            patient.MedicalRecordNumber = $"TEMP-{Guid.NewGuid():N}"; 
             var patientRepository = _unitOfWork.GetRepository<Patient, int>();
             await patientRepository.AddAsync(patient);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(); // gets patient.Id
 
             patient.MedicalRecordNumber = $"MRN{patient.Id:D6}";
             patientRepository.Update(patient);

@@ -12,8 +12,8 @@ using Persistence.Data.DbContexts;
 namespace Persistence.Data.Migrations
 {
     [DbContext(typeof(HospitalDbContext))]
-    [Migration("20260418231303_BUGfix")]
-    partial class BUGfix
+    [Migration("20260424042622_enumFixbelal")]
+    partial class enumFixbelal
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
