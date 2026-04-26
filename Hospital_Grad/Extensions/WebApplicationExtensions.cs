@@ -27,7 +27,11 @@ namespace Hospital_Grad.API.Extensions
         {
             app.MapOpenApi();
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Hospital API v1");
+                c.RoutePrefix = "swagger";
+            });
             return app;
         }
         public static WebApplication RegisterBillingRecurringJobs(this WebApplication app)

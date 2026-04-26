@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Services.Abstraction.Contracts;
 using Services.Exceptions;
+using Services.Specifications.PatientModule;
 using Shared.Common;
 using Shared.Dtos.UserManagementDtos;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,15 +16,14 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-
 namespace Services.Implementations.UserManagementModule
 {
     public class AuthService(
-    UserManager<ApplicationUser> _userManager,
-    RoleManager<IdentityRole> _roleManager,
-    IOptions<JwtOptions> _jwtOptions,
-    IAuditService _auditService,
-    IEmailService _emailService,
+        UserManager<ApplicationUser> _userManager,
+        RoleManager<IdentityRole> _roleManager,
+        IOptions<JwtOptions> _jwtOptions,
+        IAuditService _auditService,
+        IEmailService _emailService,
         IUnitOfWork _unitOfWork,
         ICacheService _cacheService) : IAuthService
     {
@@ -31,7 +31,6 @@ namespace Services.Implementations.UserManagementModule
 
         public async Task<AuthResultDto> RegisterAsync(RegisterDto dto, string? callerRole)
         {
-           
             var adminOnlyRoles = new[] { "SuperAdmin", "HospitalAdmin" };
             var staffRoles = new[] { "Doctor", "Nurse", "Receptionist" };
             var publicRoles = new[] { "Patient" };
@@ -47,7 +46,6 @@ namespace Services.Implementations.UserManagementModule
                 throw new ForbiddenException(
                     $"Only a SuperAdmin can assign the '{dto.Role}' role.");
 
-            // Allow doctor self-registration with a valid doctorId
             var isDoctorSelfRegistering = dto.Role == "Doctor" && dto.DoctorId.HasValue && callerRole is null;
 
             if (staffRoles.Contains(dto.Role)
@@ -59,7 +57,7 @@ namespace Services.Implementations.UserManagementModule
 
             if (dto.Role == "Doctor")
             {
-                if(!dto.DoctorId.HasValue)
+                if (!dto.DoctorId.HasValue)
                     throw new ValidationException(["DoctorId is required for the Doctor role."]);
 
                 var doctorExists = await _unitOfWork.GetRepository<Doctor, int>()
@@ -71,30 +69,33 @@ namespace Services.Implementations.UserManagementModule
                     throw new ValidationException(["This DoctorId is already linked to another account."]);
             }
 
-            #region old patient registeration throw superAdmin
-            //if (dto.Role == "Patient")
-            //{
-            //    if (!dto.PatientId.HasValue)
-            //        throw new ValidationException(["PatientId is required for the Patient role."]);
-
-            //    // Check the PatientId actually exists in the Patients table
-            //    var patientExists = await _unitOfWork
-            //        .GetRepository<Patient, int>()
-            //        .GetByIdAsync(dto.PatientId.Value);
-
-            //    if (patientExists is null)
-            //        throw new ValidationException([$"Patient with ID {dto.PatientId.Value} does not exist."]);
-
-            //    if (_userManager.Users.Any(u => u.PatientId == dto.PatientId))
-            //        throw new ValidationException(["This PatientId is already linked to another account."]);
-            //} 
-            #endregion
+            // ── Patient Registration ─────────────────────────────────────────────
             if (dto.Role == "Patient")
             {
                 if (dto.PatientInfo is null)
                     throw new ValidationException(["PatientInfo is required when registering as a Patient."]);
 
-                // Create the Patient record automatically
+                // Duplicate NationalId check
+                var existingNationalId = await _unitOfWork.GetRepository<Patient, int>()
+                    .CountAsync(new PatientByNationalIdSpecification(dto.PatientInfo.NationalId));
+                if (existingNationalId > 0)
+                    throw new ConflictException(
+                        $"A patient with NationalId '{dto.PatientInfo.NationalId}' already exists.");
+
+                // Duplicate Email check on Patients table
+                var existingPatientEmail = await _unitOfWork.GetRepository<Patient, int>()
+                    .CountAsync(new PatientByEmailSpecification(dto.Email));
+                if (existingPatientEmail > 0)
+                    throw new ConflictException(
+                        $"A patient with email '{dto.Email}' already exists.");
+
+                // Duplicate Email check on Identity table
+                var existingIdentityUser = await _userManager.FindByEmailAsync(dto.Email);
+                if (existingIdentityUser is not null)
+                    throw new ConflictException(
+                        $"An account with email '{dto.Email}' already exists.");
+
+                // Create Patient record
                 var patient = new Patient
                 {
                     FirstName = dto.FirstName,
@@ -113,20 +114,53 @@ namespace Services.Implementations.UserManagementModule
                     },
                     RegistrationDate = DateTime.UtcNow,
                     Status = PatientStatus.Active,
-                    MedicalRecordNumber = string.Empty // temporary
+                    MedicalRecordNumber = $"TEMP-{Guid.NewGuid():N}"
                 };
 
                 var patientRepo = _unitOfWork.GetRepository<Patient, int>();
                 await patientRepo.AddAsync(patient);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Generate MRN
+                // Assign final MRN now that we have the DB-generated Id
                 patient.MedicalRecordNumber = $"MRN{patient.Id:D6}";
                 patientRepo.Update(patient);
                 await _unitOfWork.SaveChangesAsync();
 
-                dto = dto with { PatientId = patient.Id };
+                // Create Identity user — roll back patient on failure
+                var patientUser = new ApplicationUser
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    Email = dto.Email,
+                    UserName = dto.Email,
+                    PatientId = patient.Id,
+                };
+
+                var patientUserResult = await _userManager.CreateAsync(patientUser, dto.Password);
+                if (!patientUserResult.Succeeded)
+                {
+                    patientRepo.Delete(patient);
+                    await _unitOfWork.SaveChangesAsync();
+                    throw new ValidationException(patientUserResult.Errors.Select(e => e.Description));
+                }
+
+                if (!await _roleManager.RoleExistsAsync(dto.Role))
+                    await _roleManager.CreateAsync(new IdentityRole(dto.Role));
+
+                await _userManager.AddToRoleAsync(patientUser, dto.Role);
+
+                var patientRawToken = Guid.NewGuid().ToString();
+                patientUser.EmailVerificationTokenHash = HashToken(patientRawToken);
+                patientUser.EmailVerificationExpiry = DateTime.UtcNow.AddHours(24);
+                await _userManager.UpdateAsync(patientUser);
+
+                try { await _emailService.SendVerificationEmailAsync(patientUser.Email!, patientRawToken); }
+                catch { }
+
+                return BuildAuthResult(patientUser, [], null, null, patientRawToken);
             }
+
+            // ── All Other Roles (Doctor, Nurse, Receptionist, HospitalAdmin, SuperAdmin) ──
             var user = new ApplicationUser
             {
                 FirstName = dto.FirstName,
@@ -150,15 +184,9 @@ namespace Services.Implementations.UserManagementModule
             user.EmailVerificationTokenHash = HashToken(rawToken);
             user.EmailVerificationExpiry = DateTime.UtcNow.AddHours(24);
             await _userManager.UpdateAsync(user);
-            
-            try
-            {
-                await _emailService.SendVerificationEmailAsync(user.Email!, rawToken);
-            }
-            catch
-            {
-                
-            }
+
+            try { await _emailService.SendVerificationEmailAsync(user.Email!, rawToken); }
+            catch { }
 
             return BuildAuthResult(user, [], null, null, rawToken);
         }
@@ -224,7 +252,6 @@ namespace Services.Implementations.UserManagementModule
             return BuildAuthResult(user, roles, accessToken, rawRefresh);
         }
 
-        
         public async Task LogoutAsync(string userId, string accessToken)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -234,7 +261,6 @@ namespace Services.Implementations.UserManagementModule
             user.RefreshTokenExpiry = null;
             await _userManager.UpdateAsync(user);
 
-            // Blacklist the access token in Redis until it expires
             var opts = _jwtOptions.Value;
             var expiry = TimeSpan.FromMinutes(opts.AccessTokenMinutes);
             await _cacheService.SetCacheValueAsync($"blacklist:{accessToken}", "revoked", expiry);
@@ -261,7 +287,7 @@ namespace Services.Implementations.UserManagementModule
         public async Task ForgotPasswordAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user is null) return; // Always return — no user enumeration
+            if (user is null) return;
 
             var rawToken = Guid.NewGuid().ToString();
             user.PasswordResetTokenHash = HashToken(rawToken);
@@ -291,7 +317,8 @@ namespace Services.Implementations.UserManagementModule
             await _userManager.UpdateAsync(user);
         }
 
-        // ------------------------------------------------------------------ Helpers
+        // ── Helpers ──────────────────────────────────────────────────────────────
+
         private string GenerateJwt(ApplicationUser user, IList<string> roles)
         {
             var opts = _jwtOptions.Value;
@@ -301,6 +328,7 @@ namespace Services.Implementations.UserManagementModule
                 new(ClaimTypes.Email,          user.Email!),
                 new(ClaimTypes.Name,           user.FullName),
             };
+
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
@@ -333,7 +361,6 @@ namespace Services.Implementations.UserManagementModule
             return Convert.ToHexString(bytes);
         }
 
-        
         private AuthResultDto BuildAuthResult(
             ApplicationUser user, IList<string> roles,
             string? accessToken, string? refreshToken,

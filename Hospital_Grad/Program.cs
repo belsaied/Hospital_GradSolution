@@ -25,11 +25,9 @@ app.Use(async (ctx, next) =>
     ctx.Request.EnableBuffering();
     await next();
 });
+app.UseForwardedHeaders();
+app.UseSwaggerMiddlewares();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerMiddlewares();
-}
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("DevPolicy");
