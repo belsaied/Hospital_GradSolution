@@ -19,11 +19,11 @@ namespace Shared.Dtos.PatientModule.PatientDtos
 
         public BloodType? BloodType { get; init; }
 
-        [Required, MaxLength(50)]
-        public string NationalId { get; init; } = string.Empty;
-
-        [Required, Phone]
+        [Required, Phone, MinLength(11), MaxLength(15)]
         public string Phone { get; init; } = string.Empty;
+
+        [Required, MinLength(14), MaxLength(14)]
+        public string NationalId { get; init; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; init; } = string.Empty;

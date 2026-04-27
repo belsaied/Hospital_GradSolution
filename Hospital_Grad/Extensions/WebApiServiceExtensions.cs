@@ -8,13 +8,15 @@ namespace Hospital_Grad.API.Extensions
         public static IServiceCollection AddWebApiServices(
             this IServiceCollection services)
         {
-            services.AddControllers()
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.Converters.Add(
-                        new System.Text.Json.Serialization.JsonStringEnumConverter());
-                });
-
+            services.AddControllers(options =>
+            {
+                options.Filters.Add<EnumValidationFilter>();
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new StrictEnumConverterFactory());
+                options.JsonSerializerOptions.Converters.Add(new FlexibleDateTimeConverter());
+            });
 
             services.AddEndpointsApiExplorer();
             services.AddOpenApi();
@@ -36,11 +38,11 @@ namespace Hospital_Grad.API.Extensions
                 });
             });
 
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.InvalidModelStateResponseFactory =
-                    ApiResponseFactory.GenerateApiValidationResponse;
-            });
+            //services.Configure<ApiBehaviorOptions>(options =>
+            //{
+            //    options.InvalidModelStateResponseFactory =
+            //        ApiResponseFactory.GenerateApiValidationResponse;
+            //});
             return services;
         }
     }

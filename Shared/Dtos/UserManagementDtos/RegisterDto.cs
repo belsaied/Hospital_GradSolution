@@ -28,7 +28,7 @@ namespace Shared.Dtos.UserManagementDtos
 
     public record PatientRegistrationInfo
     {
-        [Required, Phone]
+        [Required, Phone, MinLength(11), MaxLength(15)]
         public string Phone { get; init; } = string.Empty;
 
         [Required]
@@ -37,7 +37,7 @@ namespace Shared.Dtos.UserManagementDtos
         [Required]
         public Gender Gender { get; init; }
 
-        [Required, MaxLength(50)]
+        [Required, MinLength(14), MaxLength(14)]
         public string NationalId { get; init; } = string.Empty;
 
         [Required]

@@ -6,21 +6,27 @@ namespace Hospital_Grad.API.Factories
     {
         public static IActionResult GenerateApiValidationResponse(ActionContext actionContext)
         {
-            var Errors = actionContext.ModelState.Where(E => E.Value.Errors.Count > 0)
-             .ToDictionary(X => X.Key, X => X.Value.Errors.Select(X => X.ErrorMessage)).ToArray();
-            var Problem = new ProblemDetails()
+            var errors = actionContext.ModelState
+                .Where(e => e.Value!.Errors.Count > 0)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Value!.Errors.Select(e =>
+                        string.IsNullOrWhiteSpace(e.ErrorMessage)
+                            ? "Invalid value provided. Please check the field and try again."
+                            : e.ErrorMessage
+                    )
+                )
+                .ToArray();
+
+            var problem = new ProblemDetails
             {
                 Title = "Validation Errors",
-                Detail = "One or more validation Error occurred",
+                Detail = "One or more validation errors occurred",
                 Status = StatusCodes.Status400BadRequest,
-                Extensions = { { "Errors", Errors } }
+                Extensions = { { "Errors", errors } }
             };
-            return new BadRequestObjectResult(Problem);
+
+            return new BadRequestObjectResult(problem);
         }
-
-
-
-
-
     }
 }
