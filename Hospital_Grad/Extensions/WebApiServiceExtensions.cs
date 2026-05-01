@@ -38,11 +38,11 @@ namespace Hospital_Grad.API.Extensions
                 });
             });
 
-            //services.Configure<ApiBehaviorOptions>(options =>
-            //{
-            //    options.InvalidModelStateResponseFactory =
-            //        ApiResponseFactory.GenerateApiValidationResponse;
-            //});
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory =
+                    ApiResponseFactory.GenerateApiValidationResponse;
+            });
             return services;
         }
     }

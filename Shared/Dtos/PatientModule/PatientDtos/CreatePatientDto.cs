@@ -5,10 +5,14 @@ namespace Shared.Dtos.PatientModule.PatientDtos
 {
     public record CreatePatientDto
     {
-        [Required, MaxLength(100)]
+        [Required, MinLength(2), MaxLength(50),
+         RegularExpression(@"^[\p{L}\s'\-]+$",
+             ErrorMessage = "First name can only contain letters, spaces, hyphens, and apostrophes.")]
         public string FirstName { get; init; } = string.Empty;
 
-        [Required, MaxLength(100)]
+        [Required, MinLength(2), MaxLength(50),
+         RegularExpression(@"^[\p{L}\s'\-]+$",
+             ErrorMessage = "Last name can only contain letters, spaces, hyphens, and apostrophes.")]
         public string LastName { get; init; } = string.Empty;
 
         [Required]

@@ -8,10 +8,14 @@ namespace Shared.Dtos.DoctorModule.DoctorDtos
 {
     public record UpdateDoctorDto
     {
-        [MaxLength(100)]
+        [MinLength(2), MaxLength(50),
+         RegularExpression(@"^[\p{L}\s'\-]+$",
+             ErrorMessage = "First name can only contain letters, spaces, hyphens, and apostrophes.")]
         public string? FirstName { get; init; }
 
-        [MaxLength(100)]
+        [MinLength(2), MaxLength(50),
+         RegularExpression(@"^[\p{L}\s'\-]+$",
+             ErrorMessage = "Last name can only contain letters, spaces, hyphens, and apostrophes.")]
         public string? LastName { get; init; }
 
         [Phone]
