@@ -28,6 +28,14 @@ namespace Presentation.Controllers
             return CreatedAtAction(nameof(GetAppointmentById), new { id = result.Id }, result);
         }
 
+        // GET /api/appointments/doctor/{doctorId}/patients
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
+        [HttpGet("doctor/{doctorId:int}/patients")]
+        [ProducesResponseType(typeof(IEnumerable<DoctorPatientSummaryDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IEnumerable<DoctorPatientSummaryDto>>> GetDoctorPatients(int doctorId)
+            => Ok(await _serviceManager.AppointmentService.GetDoctorPatientsAsync(doctorId));
+
         // GET /api/appointments/{id}
         [Authorize(Roles = "SuperAdmin,Doctor,Patient")]
         [HttpGet("{id:int}")]

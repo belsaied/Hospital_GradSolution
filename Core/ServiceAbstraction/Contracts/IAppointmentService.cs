@@ -16,5 +16,6 @@ namespace Services.Abstraction.Contracts
         Task<IEnumerable<AppointmentResultDto>> GetDoctorAppointmentsAsync(int doctorId, DateOnly date);
         Task<AppointmentResultDto> ConfirmAppointmentAsync(int id);
         Task<AppointmentResultDto> CompleteAppointmentAsync(int id, string? notes);
+        Task<IEnumerable<DoctorPatientSummaryDto>> GetDoctorPatientsAsync(int doctorId);
     }
 }

@@ -395,7 +395,48 @@ namespace Services.Implementations.AppointmentModule
             var apts = await aptRepo.GetAllAsync(new DoctorDailyAppointmentsSpecification(doctorId, date));
             return _mapper.Map<IEnumerable<AppointmentResultDto>>(apts);
         }
+        public async Task<IEnumerable<DoctorPatientSummaryDto>> GetDoctorPatientsAsync(int doctorId)
+        {
+            var doctorRepo = _unitOfWork.GetRepository<Doctor, int>();
+            if (await doctorRepo.GetByIdAsync(doctorId) is null)
+                throw new DoctorNotFoundException(doctorId);
 
+            var aptRepo = _unitOfWork.GetRepository<Appointment, int>();
+            var appointments = await aptRepo.GetAllAsync(new DoctorAllPatientsSpecification(doctorId));
+
+            var grouped = appointments
+                .GroupBy(a => a.PatientId)
+                .Select(g =>
+                {
+                    var patient = g.First().Patient;
+                    return new DoctorPatientSummaryDto
+                    {
+                        PatientId = patient.Id,
+                        PatientName = $"{patient.FirstName} {patient.LastName}",
+                        Email = patient.Email,
+                        Phone = patient.Phone,
+                        Gender = patient.Gender.ToString(),
+                        Age = patient.Age,
+                        MedicalRecordNumber = patient.MedicalRecordNumber,
+                        Appointments = g.Select(a => new PatientAppointmentSummaryDto
+                        {
+                            AppointmentId = a.Id,
+                            ConfirmationNumber = a.ConfirmationNumber,
+                            AppointmentDate = a.AppointmentDate,
+                            StartTime = a.StartTime,
+                            EndTime = a.EndTime,
+                            Status = a.Status.ToString(),
+                            Type = a.Type.ToString(),
+                            ReasonForVisit = a.ReasonForVisit,
+                            Notes = a.Notes,
+                            CancellationReason = a.CancellationReason,
+                            BookedAt = a.BookedAt
+                        }).OrderByDescending(a => a.AppointmentDate).ToList()
+                    };
+                });
+
+            return grouped;
+        }
         // ── Private Helpers ──────────────────────────────────────────────────
 
         private static void ValidateStateTransition(AppointmentStatus current, AppointmentStatus next)

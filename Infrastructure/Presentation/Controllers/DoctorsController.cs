@@ -6,6 +6,7 @@ using Services.Abstraction.Contracts;
 using Shared;
 using Shared.Dtos.DoctorModule.DoctorDtos;
 using Shared.Parameters;
+using System.Security.Claims;
 
 namespace Presentation.Controllers
 {
@@ -121,9 +122,21 @@ namespace Presentation.Controllers
             await _serviceManager.DoctorService.RemoveQualificationAsync(id, qId);
             return NoContent();
         }
-
+        #region old schedule
+    //    [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
+    //    [HttpPost("{id:int}/schedules")]
+    //    [ProducesResponseType(typeof(ScheduleResultDto), StatusCodes.Status201Created)]
+    //    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    //    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    //    public async Task<ActionResult<ScheduleResultDto>> SetSchedule(
+    //int id, [FromBody] CreateScheduleDto dto)
+    //    {
+    //        var schedule = await _serviceManager.DoctorService.SetScheduleAsync(id, dto);
+    //        return CreatedAtAction(nameof(GetSchedules), new { id }, schedule);
+    //    }
+        #endregion
         // POST /api/doctors/{id}/schedules
-        [Authorize(Roles = "SuperAdmin,HospitalAdmin")]
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Doctor")]
         [HttpPost("{id:int}/schedules")]
         [ProducesResponseType(typeof(ScheduleResultDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -131,12 +144,21 @@ namespace Presentation.Controllers
         public async Task<ActionResult<ScheduleResultDto>> SetSchedule(
             int id, [FromBody] CreateScheduleDto dto)
         {
+            // If caller is a Doctor, they can only set their own schedule
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            if (role == "Doctor")
+            {
+                var doctorIdClaim = User.FindFirstValue("doctor_id");
+                if (!int.TryParse(doctorIdClaim, out var callerDoctorId) || callerDoctorId != id)
+                    return Forbid();
+            }
+
             var schedule = await _serviceManager.DoctorService.SetScheduleAsync(id, dto);
             return CreatedAtAction(nameof(GetSchedules), new { id }, schedule);
         }
 
         // GET /api/doctors/{id}/schedules
-        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist")]
+        [Authorize(Roles = "SuperAdmin,HospitalAdmin,Receptionist,Doctor")]
         [HttpGet("{id:int}/schedules")]
         [RedisCache(durationInSeconds: 300)]
         [ProducesResponseType(typeof(IEnumerable<ScheduleResultDto>), StatusCodes.Status200OK)]
