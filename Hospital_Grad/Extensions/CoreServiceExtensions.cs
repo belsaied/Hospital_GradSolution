@@ -39,6 +39,7 @@ namespace Hospital_Grad.API.Extensions
             services.AddScoped<IPatientService, PatientService>();
             services.AddScoped<IAllergyService, AllergyService>();
             services.AddScoped<IMedicalHistoryService, MedicalHistoryService>();
+            services.AddScoped<IPrescriptionPdfGenerator, PrescriptionPdfGenerator>();
             services.AddScoped<IEmergencyContactService, EmergencyContactService>();
 
             // ── Doctor Module ─────────────────────────────────────────────
@@ -106,6 +107,8 @@ namespace Hospital_Grad.API.Extensions
                 () => p.GetRequiredService<IVitalSignService>());
             services.AddScoped<Func<IPrescriptionService>>(p =>
                 () => p.GetRequiredService<IPrescriptionService>());
+            services.AddScoped<Func<IPrescriptionPdfGenerator>>(p =>
+                () => p.GetRequiredService<IPrescriptionPdfGenerator>());
             services.AddScoped<Func<ILabOrderService>>(p =>
                 () => p.GetRequiredService<ILabOrderService>());
             services.AddScoped<Func<IWardService>>(p =>

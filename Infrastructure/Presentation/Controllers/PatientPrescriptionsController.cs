@@ -28,5 +28,20 @@ namespace Presentation.Controllers
         public async Task<ActionResult<IEnumerable<PrescriptionResultDto>>> GetActivePrescriptions(
             int patientId)
             => Ok(await _serviceManager.PrescriptionService.GetActivePrescriptionsAsync(patientId));
+
+        // GET /api/patients/{patientId}/prescriptions/{prescriptionId}/pdf   
+        [Authorize(Roles = "SuperAdmin,Doctor,Nurse,Patient")]
+        [Authorize(Policy = "PatientOwnership")]
+        [HttpGet("{prescriptionId:int}/pdf")]
+        [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DownloadPrescriptionPdf(int patientId, int prescriptionId)
+        {
+            var bytes = await _serviceManager.PrescriptionService
+                .GeneratePrescriptionPdfAsync(prescriptionId, patientId);
+
+            return File(bytes, "application/pdf",
+                $"prescription-RX-{prescriptionId:D8}.pdf");
+        }
     }
 }

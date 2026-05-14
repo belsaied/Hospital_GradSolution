@@ -1,4 +1,5 @@
-﻿using Domain.Models.DoctorModule;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Domain.Models.DoctorModule;
 using Shared.Parameters;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,11 @@ namespace Services.Specifications.DoctorModule
                  d.FirstName.ToLower().Contains(parameters.Search.ToLower()) ||
                  d.LastName.ToLower().Contains(parameters.Search.ToLower())) &&
                 (!parameters.Status.HasValue || d.Status == parameters.Status.Value) &&
-                (!parameters.DepartmentId.HasValue || d.DepartmentId == parameters.DepartmentId.Value))
+                (!parameters.DepartmentId.HasValue || d.DepartmentId == parameters.DepartmentId.Value) &&
+                (string.IsNullOrEmpty(parameters.Specialization) ||
+                 d.Specialization.ToLower().Contains(parameters.Specialization.ToLower()))
+            )
+
         {
             AddInclude(d => d.Department);
             AddOrderBy(d => d.LastName);

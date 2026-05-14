@@ -13,7 +13,10 @@ namespace Services.Specifications.DoctorModule
                 d.FirstName.ToLower().Contains(parameters.Search.ToLower()) || 
                 d.LastName.ToLower().Contains(parameters.Search.ToLower())) && 
                 (!parameters.Status.HasValue || d.Status == parameters.Status.Value) &&
-                (!parameters.DepartmentId.HasValue ||d.DepartmentId == parameters.DepartmentId.Value))
+                (!parameters.DepartmentId.HasValue ||d.DepartmentId == parameters.DepartmentId.Value) &&
+                (string.IsNullOrEmpty(parameters.Specialization) ||
+                 d.Specialization.ToLower().Contains(parameters.Specialization.ToLower()))
+            )
         {           
         }
     }

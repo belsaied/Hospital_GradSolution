@@ -38,6 +38,10 @@ namespace Services.Implementations.DoctorModule
             if (emailExists)
                 throw new DuplicateDoctorEmailException(dto.Email);
 
+            var nationalIdExists = await doctorRepo.CountAsync(
+                new DoctorByNationalIdSpecification(dto.NationalId)) > 0;
+            if (nationalIdExists)
+                throw new ConflictException($"A doctor with NationalId '{dto.NationalId}' already exists.");
             // Step 4: Map and save
             var doctor = _mapper.Map<Doctor>(dto);
             doctor.JoinDate = DateTime.UtcNow;

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Domain.Contracts;
+using Domain.Models.DoctorModule;
 using Domain.Models.Enums.MedicalRecordEnums;
 using Domain.Models.MedicalRecordModule;
 using Domain.Models.PatientModule;
@@ -12,7 +13,8 @@ using Shared.Dtos.MedicalRecordsDto;
 
 namespace Services.Implementations.MedicalRecordModule
 {
-    public class PrescriptionService (IUnitOfWork _unitOfWork, IMapper _mapper, ICacheService _cacheService) : IPrescriptionService
+    public class PrescriptionService (IUnitOfWork _unitOfWork, IMapper _mapper, ICacheService _cacheService
+        , IPrescriptionPdfGenerator _pdfGenerator) : IPrescriptionService
     {
         public async Task<PrescriptionResultDto> AddPrescriptionAsync(int medicalRecordId, CreatePrescriptionDto dto)
         {
@@ -97,6 +99,35 @@ namespace Services.Implementations.MedicalRecordModule
             await _unitOfWork.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<byte[]> GeneratePrescriptionPdfAsync(int prescriptionId , int patientId)
+        {
+            // 1. Load prescription
+            var prescRepo = _unitOfWork.GetRepository<Prescription, int>();
+            var prescription = await prescRepo.GetByIdAsync(
+                new PrescriptionWithDetailsSpecification(prescriptionId))
+                ?? throw new PrescriptionNotFoundException(prescriptionId);
+
+            // Ownership check
+            if (prescription.PatientId != patientId)
+                throw new ForbiddenException(
+                    "This prescription does not belong to the specified patient.");
+
+            // 2. Load patient
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
+                .GetByIdAsync(prescription.PatientId)
+                ?? throw new PatientNotFoundException(prescription.PatientId);
+
+            // 3. Load doctor
+            var doctor = await _unitOfWork.GetRepository<Doctor, int>()
+                .GetByIdAsync(prescription.DoctorId)
+                ?? throw new DoctorNotFoundException(prescription.DoctorId);
+
+            var patientName = $"{patient.FirstName} {patient.LastName}";
+            var doctorName = $"{doctor.FirstName} {doctor.LastName}";
+
+            return _pdfGenerator.Generate(prescription, patientName, doctorName, doctor.Specialization);
         }
     }
 }
