@@ -27,7 +27,11 @@ app.Use(async (ctx, next) =>
 });
 app.UseForwardedHeaders();
 app.UseSwaggerMiddlewares();
-
+app.UseReDoc(options =>
+{
+    options.SpecUrl("/swagger/v1/swagger.json");
+    options.RoutePrefix = "docs";
+});
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("DevPolicy");
